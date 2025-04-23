@@ -1,0 +1,46 @@
+# === Quartus Build Artifacts ===
+db/
+incremental_db/
+output_files/
+synthesis/
+*.sof
+*.pof
+*.cmp
+*.rpt
+*.summary
+*.log
+*.raw
+*.html
+*.jdi
+
+# === Qsys & Platform Designer Generated ===
+*.sopcinfo
+*.qip
+hps_isw_handoff/
+hps_sdram_p0_all_pins.txt
+
+# === Ignore simulation wave/output ===
+*.vcd
+*.wlf
+*.fsdb
+
+# === Backup and temporary editor files ===
+*~
+*.bak
+*.swp
+*.tmp
+*.temp
+*.old
+
+# === OS-specific ===
+.DS_Store
+
+# === Do NOT ignore: keep these explicitly ===
+!player_sprite.sv
+!player_sprite_hw.tcl
+!player_sprite_hw.tcl~
+!soc_system.qsys
+!soc_system.tcl
+!soc_system_top.sv
+!soc_system_board_info.xml
+!soc_system.srf
