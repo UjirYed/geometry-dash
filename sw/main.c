@@ -8,8 +8,11 @@
 
 #define LOADING 2
 #define READY 4
-#define 
+#define PLAYING 6
 int READY, SET = 0;
+
+int midi_loaded = 0;
+int audio_initialized = 0;
 
 int current_state;
 
@@ -18,9 +21,20 @@ int main() {
     while (1) {
         switch (current_state) {
             case LOADING:
-                loadMapAndMusic();
+                if (loadMapandMusic())
+                    current_state = READY;
+                    
                 break;
             case READY:
+                if (userPressedStartButton()) {
+                    current_state = PLAYING;
+                    startAudioPlayback();
+                }
+                break;
+            case PLAYING:
+                runGamePhysics();
+                updateDisplay();
+                break;
 
 
         }
@@ -29,6 +43,8 @@ int main() {
 
 int loadMapAndMusic() {
     return 1;
+
+
 }
 
 int runGamePhysics() {
