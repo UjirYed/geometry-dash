@@ -127,7 +127,7 @@
  <parameter name="hideFromIPCatalog" value="false" />
  <parameter name="lockedInterfaceDefinition" value="" />
  <parameter name="maxAdditionalLatency" value="1" />
- <parameter name="projectName" value="soc_system.qpf" />
+ <parameter name="projectName" value="" />
  <parameter name="sopcBorderPoints" value="false" />
  <parameter name="systemHash" value="0" />
  <parameter name="testBenchDutName" value="" />
@@ -147,6 +147,7 @@
  <interface name="clk" internal="clk_0.clk_in" type="clock" dir="end" />
  <interface name="hps" internal="hps_0.hps_io" type="conduit" dir="end" />
  <interface name="hps_ddr3" internal="hps_0.memory" type="conduit" dir="end" />
+ <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
  <interface name="vga" internal="player_sprite_0.vga" type="conduit" dir="end" />
  <module
    name="audio_0"
@@ -887,6 +888,16 @@
    kind="reset"
    version="21.1"
    start="clk_0.clk_reset"
+   end="audio_0.reset" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="clk_0.clk_reset"
+   end="audio_and_video_config_0.reset" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="clk_0.clk_reset"
    end="display_buf.reset1" />
  <connection
    kind="reset"
@@ -896,22 +907,7 @@
  <connection
    kind="reset"
    version="21.1"
-   start="hps_0.h2f_reset"
-   end="clk_0.clk_in_reset" />
- <connection
-   kind="reset"
-   version="21.1"
-   start="hps_0.h2f_reset"
-   end="audio_and_video_config_0.reset" />
- <connection
-   kind="reset"
-   version="21.1"
-   start="hps_0.h2f_reset"
-   end="audio_0.reset" />
- <connection
-   kind="reset"
-   version="21.1"
-   start="hps_0.h2f_reset"
+   start="clk_0.clk_reset"
    end="fifo_0.reset_in" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
