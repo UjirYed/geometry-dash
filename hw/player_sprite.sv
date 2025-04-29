@@ -38,7 +38,6 @@ module player_sprite(input logic        clk,
     // REGISTERS
     logic [15:0] player_y_pos;
     logic [15:0] x_shift;
-    logic [7:0]  background_r, background_g, background_b;
     logic [7:0]  map_block;
     logic [7:0]  flags;
     logic [7:0]  output_flags;
