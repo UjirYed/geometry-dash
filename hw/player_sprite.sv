@@ -7,53 +7,73 @@
  * Register map:
  * 
  * Byte Offset  7 ... 0   Meaning
- *        0    |  Red  |  Red component of background color (0-255)
- *        1    | Green |  Green component
- *        2    | Blue  |  Blue component
+ *        0    | player_y_pos   | Player y position (0-480)
+ *        2    | x_shift        | The current top leftmost map_block
+ *        4    | background_r   | Red component of background color (0-255)
+ *        6    | background_g   | Green component
+ *        8    | background_b   | Blue component
+ *        10   | map_block      | A section of map containing an obstacle id
+ *        12   | flags          | Start, Acknowledgment
+ *        14   | output         | Output flags
+ *        16   | audio          | PCM audio samples for streaming to codec
  */
 
 module player_sprite(input logic        clk,
-	        input logic 	   reset,
-		input logic [7:0]  writedata,
-		input logic 	   write,
-		input 		   chipselect,
-		input logic [2:0]  address,
+            input logic 	   reset,
+        input logic [15:0]  writedata,
+        input logic 	   write,
+        input 		   chipselect,
+        input logic [2:0]  address,
 
-		output logic [7:0] VGA_R, VGA_G, VGA_B,
-		output logic 	   VGA_CLK, VGA_HS, VGA_VS,
-		                   VGA_BLANK_n,
-		output logic 	   VGA_SYNC_n);
+        output logic [7:0] VGA_R, VGA_G, VGA_B,
+        output logic 	   VGA_CLK, VGA_HS, VGA_VS,
+                           VGA_BLANK_n,
+        output logic 	   VGA_SYNC_n);
 
-   logic [10:0]	   hcount;
-   logic [9:0]     vcount;
+    logic [10:0]	   hcount;
+    logic [9:0]     vcount;
 
-   logic [7:0] 	   background_r, background_g, background_b;
-	
+    logic [7:0] 	   background_r, background_g, background_b;
+
+    // REGISTERS
+    logic [15:0] player_y_pos;
+    logic [15:0] x_shift;
+    logic [7:0]  background_r, background_g, background_b;
+    logic [7:0]  map_block;
+    logic [7:0]  flags;
+    logic [7:0]  output_flags;
+    logic [15:0] audio;
+
+    
    vga_counters counters(.clk50(clk), .*);
 
-   always_ff @(posedge clk)
-     if (reset) begin
-	background_r <= 8'h0;
-	background_g <= 8'h0;
-	background_b <= 8'h80;
-     end else if (chipselect && write)
-       case (address)
-	 3'h0 : background_r <= writedata;
-	 3'h1 : background_g <= writedata;
-	 3'h2 : background_b <= writedata;
-       endcase
+    always_ff @(posedge clk)
+        if (reset) begin
+            background_r <= 8'h0;
+            background_g <= 8'h0;
+            background_b <= 8'h80;
+        end else if (chipselect && write)
+        case (address)
+            3'h0: player_y_pos <= writedata;
+            3'h1: x_shift <= writedata;
+            3'h2: background_r <= writedata[7:0];
+            3'h3: background_g <= writedata[7:0];
+            3'h4: background_b <= writedata[7:0];
+            3'h5: map_block <= writedata[7:0];
+            3'h6: flags <= writedata[7:0];
+            3'h7: output_flags <= writedata[7:0];
+        endcase
 
-   always_comb begin
-      {VGA_R, VGA_G, VGA_B} = {8'h0, 8'h0, 8'h0};
-      if (VGA_BLANK_n )
-	if (hcount[10:6] == 5'd3 &&
-	    vcount[9:5] == 5'd3)
-	  {VGA_R, VGA_G, VGA_B} = {8'hff, 8'hff, 8'hff};
-	else
-	  {VGA_R, VGA_G, VGA_B} =
-             {background_r, background_g, background_b};
-   end
-	       
+    always_comb begin
+        {VGA_R, VGA_G, VGA_B} = {8'h0, 8'h0, 8'h0};
+        if (VGA_BLANK_n )
+            if ( (hcount[10:6] == 5'd3) && (vcount >= player_y_pos) && (vcount < player_y_pos + 16) )
+                {VGA_R, VGA_G, VGA_B} = {8'hff, 8'hff, 8'hff};
+        else
+            {VGA_R, VGA_G, VGA_B} =
+                {background_r, background_g, background_b};
+    end
+           
 endmodule
 
 module vga_counters(
@@ -112,7 +132,7 @@ module vga_counters(
    // Horizontal sync: from 0x520 to 0x5DF (0x57F)
    // 101 0010 0000 to 101 1101 1111
    assign VGA_HS = !( (hcount[10:8] == 3'b101) &
-		      !(hcount[7:5] == 3'b111));
+              !(hcount[7:5] == 3'b111));
    assign VGA_VS = !( vcount[9:1] == (VACTIVE + VFRONT_PORCH) / 2);
 
    assign VGA_SYNC_n = 1'b0; // For putting sync on the green signal; unused
@@ -121,7 +141,7 @@ module vga_counters(
    // 101 0000 0000  1280	       01 1110 0000  480
    // 110 0011 1111  1599	       10 0000 1100  524
    assign VGA_BLANK_n = !( hcount[10] & (hcount[9] | hcount[8]) ) &
-			!( vcount[9] | (vcount[8:5] == 4'b1111) );
+            !( vcount[9] | (vcount[8:5] == 4'b1111) );
 
    /* VGA_CLK is 25 MHz
     *             __    __    __
