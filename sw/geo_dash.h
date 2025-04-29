@@ -8,15 +8,20 @@
 #include <linux/ioctl.h>
 
 typedef struct {
-    uint16_t player_pos_x;
-
+    uint16_t x_shift;
+    uint16_t player_y;
+    uint8_t  bg_r;
+    uint8_t  bg_g;
+    uint8_t  bg_b;
+    uint8_t  map_block;
+    uint8_t  flags;
+    uint8_t  output_flags;
+    uint16_t audio;
 } geo_dash_arg_t;
+
 
 #define GEO_DASH_MAGIC 'q'
 
-#define WRITE_PLAYER_XPOSITION _IOW(GEO_DASH_MAGIC, 1, geo_dash_arg_t *)
-
-#define READ_TEST_REG _IOR(CAT_INVADERS_MAGIC, 21, cat_invaders_arg_t *)
-
+#define WRITE_X_SHIFT _IOW(GEO_DASH_MAGIC, 0, geo_dash_arg_t *)
 
 #endif

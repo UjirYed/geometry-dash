@@ -32,18 +32,25 @@
 #include <linux/of_address.h>
 #include <linux/fs.h>
 #include <linux/uaccess.h>
-#include "vga_ball.h"
+#include <linux/ioctl.h>
+#include "geo_dash.h"
 
 #define DRIVER_NAME "geo_dash"
 
 // Assuming that we have 16-bit registers.
-#define PLAYER_Y_POS(x) (x)
-#define PLAYER_X_POS(x) ((x) + 2)
-#define BACKGROUND_R(x) ((x))
+#define PLAYER_Y_POS(base)   ((base) + 0x00)  // 16-bit
+#define X_SHIFT(base)        ((base) + 0x02)  // 16-bit
 
-#define READY(x) ((x) + 12)
-#define SET(x) ((x) + 12)
-#define OUTPUT(x) ((x) + 14)
+#define BACKGROUND_R(base)   ((base) + 0x04)  // lower 8 bits used
+#define BACKGROUND_G(base)   ((base) + 0x06)  // lower 8 bits used
+#define BACKGROUND_B(base)   ((base) + 0x08)  // lower 8 bits used
+
+#define MAP_BLOCK(base)      ((base) + 0x0A)  // lower 8 bits used
+#define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
+#define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
+
+#define AUDIO(base)          ((base) + 0x10)  // 16-bit PCM sample
+
 
 /*
 Information about our geometry_dash device. Acts as a mirror of hardware state.
@@ -52,29 +59,101 @@ Information about our geometry_dash device. Acts as a mirror of hardware state.
 struct geo_dash_dev {
     struct resource res; /* Our registers. */
     void __iomem *virtbase; /* Where our registers can be accessed in memory. */
-    short player_x_pos;
+    short x_shift;
 
 } dev;
 
-static void write_player_xposition(unsigned short *value)
-{
+
+static void write_player_y_position(unsigned short *value) {
     iowrite16(*value, PLAYER_Y_POS(dev.virtbase));
-    player_x_pos = *value;
+}
+
+static void write_x_shift(unsigned short *value) {
+    iowrite16(*value, X_SHIFT(dev.virtbase));
+    dev.x_shift = *value;
+}
+
+static void write_background_r(uint8_t *value) {
+    iowrite16((uint16_t)(*value), BACKGROUND_R(dev.virtbase));
+}
+
+static void write_background_g(uint8_t *value) {
+    iowrite16((uint16_t)(*value), BACKGROUND_G(dev.virtbase));
+}
+
+static void write_background_b(uint8_t *value) {
+    iowrite16((uint16_t)(*value), BACKGROUND_B(dev.virtbase));
+}
+
+static void write_map_block(uint8_t *value) {
+    iowrite16((uint16_t)(*value), MAP_BLOCK(dev.virtbase));
+}
+
+static void write_flags(uint8_t *value) {
+    iowrite16((uint16_t)(*value), FLAGS(dev.virtbase));
+}
+
+static void write_output_flags(uint8_t *value) {
+    iowrite16((uint16_t)(*value), OUTPUT_FLAGS(dev.virtbase));
+}
+
+static void write_audio_sample(uint16_t *value) {
+    iowrite16(*value, AUDIO(dev.virtbase));
 }
 
 static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
     geo_dash_arg_t vla;
 
-    switch (cmd) {
-        case WRITE_PLAYER_XPOSITION:
-            if (copy_from_user(&vla, (geo_dash_arg_t *) arg, sizeof(geo_dash_arg_t)))
-                return -EACCES;
-            write_player_xposition(&vla.player_pos_x)
+    // Copy user struct into kernel space
+    if (copy_from_user(&vla, (geo_dash_arg_t *) arg, sizeof(vla)))
+        return -EFAULT;
 
+    switch (cmd) {
+        case WRITE_X_SHIFT:
+            write_x_shift(&vla.x_shift);
+            break;
+
+        case WRITE_PLAYER_Y_POS:
+            write_player_y_position(&vla.player_y);
+            break;
+
+        case WRITE_BACKGROUND_R:
+            write_background_r(&vla.bg_r);
+            break;
+
+        case WRITE_BACKGROUND_G:
+            write_background_g(&vla.bg_g);
+            break;
+
+        case WRITE_BACKGROUND_B:
+            write_background_b(&vla.bg_b);
+            break;
+
+        case WRITE_MAP_BLOCK:
+            write_map_block(&vla.map_block);
+            break;
+
+        case WRITE_FLAGS:
+            write_flags(&vla.flags);
+            break;
+
+        case WRITE_OUTPUT_FLAGS:
+            write_output_flags(&vla.output_flags);
+            break;
+
+        case WRITE_AUDIO:
+            write_audio_sample(&vla.audio);
+            break;
+
+        default:
+            return -EINVAL;  // Unknown command
     }
+
     return 0;
 }
+
+
 
 static const struct file_operations geo_dash_fops = {
     .owner = THIS_MODULE,
@@ -82,10 +161,10 @@ static const struct file_operations geo_dash_fops = {
 };
 
 static struct miscdevice geo_dash_misc_device = {
-    .mnior = MISC_DYNAMIC_MINOR,
+    .minor = MISC_DYNAMIC_MINOR,
     .name = DRIVER_NAME,
     .fops = &geo_dash_fops
-}
+};
 
 /*
  * Initialization code: get resources (registers) and display
@@ -166,7 +245,7 @@ static int __init geo_dash_init(void)
 	return platform_driver_probe(&geo_dash_driver, geo_dash_probe);
 }
 
-/* Calball when the module is unloaded: release resources */
+/* Called when the module is unloaded: release resources */
 static void __exit geo_dash_exit(void)
 {
 	platform_driver_unregister(&geo_dash_driver);
