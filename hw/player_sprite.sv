@@ -15,7 +15,6 @@
  *        10   | map_block      | A section of map containing an obstacle id
  *        12   | flags          | Start, Acknowledgment
  *        14   | output         | Output flags
- *        16   | audio          | PCM audio samples for streaming to codec
  */
 
 module player_sprite(input logic        clk,
@@ -41,8 +40,6 @@ module player_sprite(input logic        clk,
     logic [7:0]  map_block;
     logic [7:0]  flags;
     logic [7:0]  output_flags;
-    logic [15:0] audio;
-
     
    vga_counters counters(.clk50(clk), .*);
 
@@ -65,6 +62,7 @@ module player_sprite(input logic        clk,
 
     always_comb begin
         {VGA_R, VGA_G, VGA_B} = {8'h0, 8'h0, 8'h0};
+		new_hcount = hcount >> 1;
         if (VGA_BLANK_n )
             if ( (hcount[10:6] == 5'd3) && (vcount >= player_y_pos) && (vcount < player_y_pos + 16) )
                 {VGA_R, VGA_G, VGA_B} = {8'hff, 8'hff, 8'hff};

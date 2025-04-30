@@ -37,6 +37,8 @@
 
 #define DRIVER_NAME "geo_dash"
 
+#define AUDIO_FIFO_BASE_ADDR 0x00034000
+
 // Assuming that we have 16-bit registers.
 #define PLAYER_Y_POS(base)   ((base) + 0x00)  // 16-bit
 #define X_SHIFT(base)        ((base) + 0x02)  // 16-bit
@@ -49,9 +51,6 @@
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
 
-#define AUDIO(base)          ((base) + 0x10)  // 16-bit PCM sample
-
-
 /*
 Information about our geometry_dash device. Acts as a mirror of hardware state.
 */
@@ -59,10 +58,9 @@ Information about our geometry_dash device. Acts as a mirror of hardware state.
 struct geo_dash_dev {
     struct resource res; /* Our registers. */
     void __iomem *virtbase; /* Where our registers can be accessed in memory. */
+	void __iomem *audio_fifo_base;
     short x_shift;
-
 } dev;
-
 
 static void write_player_y_position(unsigned short *value) {
     iowrite16(*value, PLAYER_Y_POS(dev.virtbase));
@@ -97,8 +95,8 @@ static void write_output_flags(uint8_t *value) {
     iowrite16((uint16_t)(*value), OUTPUT_FLAGS(dev.virtbase));
 }
 
-static void write_audio_sample(uint16_t *value) {
-    iowrite16(*value, AUDIO(dev.virtbase));
+static void write_audio_fifo(uint16_t sample) {
+    iowrite16(sample, dev.audio_fifo_base);
 }
 
 static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
@@ -142,9 +140,9 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             write_output_flags(&vla.output_flags);
             break;
 
-        case WRITE_AUDIO:
-            write_audio_sample(&vla.audio);
-            break;
+		case WRITE_AUDIO_FIFO:
+			write_audio_fifo(vla.audio);
+			break;
 
         default:
             return -EINVAL;  // Unknown command

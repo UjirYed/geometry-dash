@@ -24,4 +24,7 @@ typedef struct {
 
 #define WRITE_X_SHIFT _IOW(GEO_DASH_MAGIC, 0, geo_dash_arg_t *)
 
+#define WRITE_AUDIO_FIFO _IOW(GEO_DASH_MAGIC, 9, geo_dash_arg_t *)
+
+
 #endif
