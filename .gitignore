@@ -16,6 +16,7 @@ synthesis/
 # === Qsys & Platform Designer Generated ===
 *.sopcinfo
 *.qip
+.qsys_edit/
 hps_isw_handoff/
 hps_sdram_p0_all_pins.txt
 
