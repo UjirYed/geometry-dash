@@ -37,7 +37,7 @@
 
 #define DRIVER_NAME "geo_dash"
 
-#define AUDIO_FIFO_BASE_ADDR 0x00034000
+#define AUDIO_FIFO_BASE_ADDR 0x00014040
 
 // Assuming that we have 16-bit registers.
 #define PLAYER_Y_POS(base)   ((base) + 0x00)  // 16-bit
