@@ -1,0 +1,73 @@
+# # File gsaved with Nlview version 6.3.8  2013-12-19 bk=1.2992 VDI=34 GEI=35
+# 
+preplace inst soc_system.hps_0.uart0 -pg 1
+preplace inst soc_system.hps_0.gmac0 -pg 1
+preplace inst soc_system.hps_0.uart1 -pg 1
+preplace inst soc_system.hps_0.clkmgr -pg 1
+preplace inst soc_system.hps_0.axi_ocram -pg 1
+preplace inst soc_system.hps_0.sdrctl -pg 1
+preplace inst soc_system.hps_0.gmac1 -pg 1
+preplace inst soc_system.hps_0.qspi -pg 1
+preplace inst soc_system.hps_0.sysmgr -pg 1
+preplace inst soc_system.hps_0.l3regs -pg 1
+preplace inst soc_system.hps_0.usb0 -pg 1
+preplace inst soc_system.hps_0.i2c0 -pg 1
+preplace inst soc_system.hps_0.clk_0 -pg 1
+preplace inst soc_system.player_sprite_0 -pg 1 -lvl 3 -y 530
+preplace inst soc_system.hps_0.usb1 -pg 1
+preplace inst soc_system.hps_0.i2c1 -pg 1
+preplace inst soc_system.hps_0.fpgamgr -pg 1
+preplace inst soc_system.hps_0.bridges -pg 1
+preplace inst soc_system.hps_0.hps_io -pg 1
+preplace inst soc_system.fifo_0 -pg 1 -lvl 3 -y 330
+preplace inst soc_system.hps_0.i2c2 -pg 1
+preplace inst soc_system.hps_0.wd_timer0 -pg 1
+preplace inst soc_system.hps_0.rstmgr -pg 1
+preplace inst soc_system.hps_0.dma -pg 1
+preplace inst soc_system.hps_0.f2s_sdram_ref_clk -pg 1
+preplace inst soc_system.hps_0.i2c3 -pg 1
+preplace inst soc_system.hps_0.wd_timer1 -pg 1
+preplace inst soc_system.hps_0.timer0 -pg 1
+preplace inst soc_system.hps_0.eosc1 -pg 1
+preplace inst soc_system -pg 1 -lvl 1 -y 40 -regy -20
+preplace inst soc_system.hps_0.dcan0 -pg 1
+preplace inst soc_system.hps_0.spim0 -pg 1
+preplace inst soc_system.hps_0.timer1 -pg 1
+preplace inst soc_system.hps_0.L2 -pg 1
+preplace inst soc_system.hps_0.eosc2 -pg 1
+preplace inst soc_system.hps_0.hps_io.border -pg 1
+preplace inst soc_system.display_buf -pg 1 -lvl 3 -y 250
+preplace inst soc_system.hps_0.scu -pg 1
+preplace inst soc_system.hps_0.dcan1 -pg 1
+preplace inst soc_system.hps_0.sdmmc -pg 1
+preplace inst soc_system.hps_0.spim1 -pg 1
+preplace inst soc_system.hps_0.gpio0 -pg 1
+preplace inst soc_system.hps_0.timer2 -pg 1
+preplace inst soc_system.hps_0.arm_a9_0 -pg 1
+preplace inst soc_system.img_table -pg 1 -lvl 3 -y 450
+preplace inst soc_system.hps_0.timer -pg 1
+preplace inst soc_system.hps_0.gpio1 -pg 1
+preplace inst soc_system.hps_0.timer3 -pg 1
+preplace inst soc_system.hps_0.arm_a9_1 -pg 1
+preplace inst soc_system.audio_and_video_config_0 -pg 1 -lvl 3 -y 150
+preplace inst soc_system.hps_0.nand0 -pg 1
+preplace inst soc_system.hps_0.gpio2 -pg 1
+preplace inst soc_system.hps_0.arm_gic_0 -pg 1
+preplace inst soc_system.hps_0 -pg 1 -lvl 2 -y 440
+preplace inst soc_system.clk_0 -pg 1 -lvl 1 -y 370
+preplace inst soc_system.hps_0.f2s_periph_ref_clk -pg 1
+preplace inst soc_system.hps_0.fpga_interfaces -pg 1
+preplace inst soc_system.audio_0 -pg 1 -lvl 3 -y 30
+preplace inst soc_system.hps_0.axi_sdram -pg 1
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)hps_0.memory,(SLAVE)soc_system.hps_ddr3) 1 0 2 NJ 550 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.audio_and_video_config_0_external_interface,(SLAVE)audio_and_video_config_0.external_interface) 1 0 3 NJ 200 NJ 200 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)player_sprite_0.vga,(SLAVE)soc_system.vga) 1 0 3 NJ 600 NJ 600 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.clk,(SLAVE)clk_0.clk_in) 1 0 1 NJ
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)player_sprite_0.reset,(SLAVE)audio_0.reset,(MASTER)clk_0.clk_reset,(SLAVE)audio_and_video_config_0.reset,(SLAVE)fifo_0.reset_in,(SLAVE)img_table.reset1,(SLAVE)display_buf.reset1) 1 1 2 N 400 760
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)soc_system.reset,(SLAVE)clk_0.clk_in_reset) 1 0 1 NJ
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)audio_0.external_interface,(SLAVE)soc_system.audio_0_external_interface) 1 0 3 NJ 100 NJ 100 NJ
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)audio_and_video_config_0.avalon_av_config_slave,(SLAVE)fifo_0.in,(SLAVE)player_sprite_0.avalon_slave_0,(SLAVE)img_table.s1,(MASTER)hps_0.h2f_lw_axi_master,(SLAVE)display_buf.s1) 1 2 1 740
+preplace netloc EXPORT<net_container>soc_system</net_container>(SLAVE)hps_0.hps_io,(SLAVE)soc_system.hps) 1 0 2 NJ 490 NJ
+preplace netloc FAN_OUT<net_container>soc_system</net_container>(SLAVE)audio_and_video_config_0.clk,(SLAVE)audio_0.clk,(SLAVE)display_buf.clk1,(SLAVE)fifo_0.clk_in,(SLAVE)hps_0.f2h_axi_clock,(SLAVE)hps_0.h2f_lw_axi_clock,(SLAVE)player_sprite_0.clock,(MASTER)clk_0.clk,(SLAVE)img_table.clk1,(SLAVE)hps_0.h2f_axi_clock) 1 1 2 410 380 720
+levelinfo -pg 1 0 200 1150
+levelinfo -hier soc_system 210 240 530 790 1140

@@ -73,6 +73,27 @@
          type = "String";
       }
    }
+   element fifo_1
+   {
+      datum _sortIndex
+      {
+         value = "8";
+         type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
+      }
+   }
+   element fifo_1.out
+   {
+      datum _lockedAddress
+      {
+         value = "0";
+         type = "boolean";
+      }
+   }
    element hps_0
    {
       datum _sortIndex
@@ -134,17 +155,26 @@
  <parameter name="timeStamp" value="0" />
  <parameter name="useTestBenchNamingPattern" value="false" />
  <instanceScript></instanceScript>
+ <interface name="audio_0_clk" internal="audio_0.clk" type="clock" dir="end" />
  <interface
    name="audio_0_external_interface"
    internal="audio_0.external_interface"
    type="conduit"
    dir="end" />
+ <interface name="audio_0_reset" internal="audio_0.reset" type="reset" dir="end" />
  <interface
    name="audio_and_video_config_0_external_interface"
    internal="audio_and_video_config_0.external_interface"
    type="conduit"
    dir="end" />
  <interface name="clk" internal="clk_0.clk_in" type="clock" dir="end" />
+ <interface name="fifo_1_in" internal="fifo_1.in" type="avalon" dir="end" />
+ <interface name="fifo_1_in_csr" internal="fifo_1.in_csr" type="avalon" dir="end" />
+ <interface
+   name="fifo_1_in_irq"
+   internal="fifo_1.in_irq"
+   type="interrupt"
+   dir="end" />
  <interface name="hps" internal="hps_0.hps_io" type="conduit" dir="end" />
  <interface name="hps_ddr3" internal="hps_0.memory" type="conduit" dir="end" />
  <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
@@ -154,7 +184,7 @@
    kind="altera_up_avalon_audio"
    version="18.0"
    enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="audio_in" value="false" />
   <parameter name="audio_out" value="true" />
@@ -235,6 +265,27 @@
   <parameter name="singleClockMode" value="true" />
   <parameter name="singleResetMode" value="false" />
   <parameter name="symbolsPerBeat" value="2" />
+  <parameter name="useBackpressure" value="true" />
+  <parameter name="useIRQ" value="true" />
+  <parameter name="usePacket" value="false" />
+  <parameter name="useReadControl" value="false" />
+  <parameter name="useRegister" value="false" />
+  <parameter name="useWriteControl" value="true" />
+ </module>
+ <module name="fifo_1" kind="altera_avalon_fifo" version="21.1" enabled="1">
+  <parameter name="avalonMMAvalonMMDataWidth" value="32" />
+  <parameter name="avalonMMAvalonSTDataWidth" value="32" />
+  <parameter name="bitsPerSymbol" value="8" />
+  <parameter name="channelWidth" value="0" />
+  <parameter name="deviceFamilyString" value="Cyclone V" />
+  <parameter name="errorWidth" value="0" />
+  <parameter name="fifoDepth" value="512" />
+  <parameter name="fifoInputInterfaceOptions" value="AVALONMM_WRITE" />
+  <parameter name="fifoOutputInterfaceOptions" value="AVALONST_SOURCE" />
+  <parameter name="showHiddenFeatures" value="false" />
+  <parameter name="singleClockMode" value="true" />
+  <parameter name="singleResetMode" value="false" />
+  <parameter name="symbolsPerBeat" value="4" />
   <parameter name="useBackpressure" value="true" />
   <parameter name="useIRQ" value="true" />
   <parameter name="usePacket" value="false" />
@@ -851,14 +902,19 @@
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
+   kind="avalon_streaming"
+   version="21.1"
+   start="fifo_1.out"
+   end="audio_0.avalon_left_channel_sink" />
+ <connection
    kind="clock"
    version="21.1"
    start="clk_0.clk"
    end="audio_and_video_config_0.clk" />
- <connection kind="clock" version="21.1" start="clk_0.clk" end="audio_0.clk" />
  <connection kind="clock" version="21.1" start="clk_0.clk" end="display_buf.clk1" />
  <connection kind="clock" version="21.1" start="clk_0.clk" end="img_table.clk1" />
  <connection kind="clock" version="21.1" start="clk_0.clk" end="fifo_0.clk_in" />
+ <connection kind="clock" version="21.1" start="clk_0.clk" end="fifo_1.clk_in" />
  <connection
    kind="clock"
    version="21.1"
@@ -888,11 +944,6 @@
    kind="reset"
    version="21.1"
    start="clk_0.clk_reset"
-   end="audio_0.reset" />
- <connection
-   kind="reset"
-   version="21.1"
-   start="clk_0.clk_reset"
    end="audio_and_video_config_0.reset" />
  <connection
    kind="reset"
@@ -909,6 +960,11 @@
    version="21.1"
    start="clk_0.clk_reset"
    end="fifo_0.reset_in" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="clk_0.clk_reset"
+   end="fifo_1.reset_in" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="FALSE" />
