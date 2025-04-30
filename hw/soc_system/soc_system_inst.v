@@ -1,10 +1,22 @@
 	soc_system u0 (
+		.audio_0_clk_clk                                  (<connected-to-audio_0_clk_clk>),                                  //                                 audio_0_clk.clk
 		.audio_0_external_interface_BCLK                  (<connected-to-audio_0_external_interface_BCLK>),                  //                  audio_0_external_interface.BCLK
 		.audio_0_external_interface_DACDAT                (<connected-to-audio_0_external_interface_DACDAT>),                //                                            .DACDAT
 		.audio_0_external_interface_DACLRCK               (<connected-to-audio_0_external_interface_DACLRCK>),               //                                            .DACLRCK
+		.audio_0_reset_reset                              (<connected-to-audio_0_reset_reset>),                              //                               audio_0_reset.reset
 		.audio_and_video_config_0_external_interface_SDAT (<connected-to-audio_and_video_config_0_external_interface_SDAT>), // audio_and_video_config_0_external_interface.SDAT
 		.audio_and_video_config_0_external_interface_SCLK (<connected-to-audio_and_video_config_0_external_interface_SCLK>), //                                            .SCLK
 		.clk_clk                                          (<connected-to-clk_clk>),                                          //                                         clk.clk
+		.fifo_1_in_writedata                              (<connected-to-fifo_1_in_writedata>),                              //                                   fifo_1_in.writedata
+		.fifo_1_in_write                                  (<connected-to-fifo_1_in_write>),                                  //                                            .write
+		.fifo_1_in_address                                (<connected-to-fifo_1_in_address>),                                //                                            .address
+		.fifo_1_in_waitrequest                            (<connected-to-fifo_1_in_waitrequest>),                            //                                            .waitrequest
+		.fifo_1_in_csr_address                            (<connected-to-fifo_1_in_csr_address>),                            //                               fifo_1_in_csr.address
+		.fifo_1_in_csr_read                               (<connected-to-fifo_1_in_csr_read>),                               //                                            .read
+		.fifo_1_in_csr_writedata                          (<connected-to-fifo_1_in_csr_writedata>),                          //                                            .writedata
+		.fifo_1_in_csr_write                              (<connected-to-fifo_1_in_csr_write>),                              //                                            .write
+		.fifo_1_in_csr_readdata                           (<connected-to-fifo_1_in_csr_readdata>),                           //                                            .readdata
+		.fifo_1_in_irq_irq                                (<connected-to-fifo_1_in_irq_irq>),                                //                               fifo_1_in_irq.irq
 		.hps_hps_io_emac1_inst_TX_CLK                     (<connected-to-hps_hps_io_emac1_inst_TX_CLK>),                     //                                         hps.hps_io_emac1_inst_TX_CLK
 		.hps_hps_io_emac1_inst_TXD0                       (<connected-to-hps_hps_io_emac1_inst_TXD0>),                       //                                            .hps_io_emac1_inst_TXD0
 		.hps_hps_io_emac1_inst_TXD1                       (<connected-to-hps_hps_io_emac1_inst_TXD1>),                       //                                            .hps_io_emac1_inst_TXD1
@@ -78,18 +90,6 @@
 		.vga_hs                                           (<connected-to-vga_hs>),                                           //                                            .hs
 		.vga_r                                            (<connected-to-vga_r>),                                            //                                            .r
 		.vga_sync_n                                       (<connected-to-vga_sync_n>),                                       //                                            .sync_n
-		.vga_vs                                           (<connected-to-vga_vs>),                                           //                                            .vs
-		.fifo_1_in_irq_irq                                (<connected-to-fifo_1_in_irq_irq>),                                //                               fifo_1_in_irq.irq
-		.fifo_1_in_csr_address                            (<connected-to-fifo_1_in_csr_address>),                            //                               fifo_1_in_csr.address
-		.fifo_1_in_csr_read                               (<connected-to-fifo_1_in_csr_read>),                               //                                            .read
-		.fifo_1_in_csr_writedata                          (<connected-to-fifo_1_in_csr_writedata>),                          //                                            .writedata
-		.fifo_1_in_csr_write                              (<connected-to-fifo_1_in_csr_write>),                              //                                            .write
-		.fifo_1_in_csr_readdata                           (<connected-to-fifo_1_in_csr_readdata>),                           //                                            .readdata
-		.fifo_1_in_writedata                              (<connected-to-fifo_1_in_writedata>),                              //                                   fifo_1_in.writedata
-		.fifo_1_in_write                                  (<connected-to-fifo_1_in_write>),                                  //                                            .write
-		.fifo_1_in_address                                (<connected-to-fifo_1_in_address>),                                //                                            .address
-		.fifo_1_in_waitrequest                            (<connected-to-fifo_1_in_waitrequest>),                            //                                            .waitrequest
-		.audio_0_reset_reset                              (<connected-to-audio_0_reset_reset>),                              //                               audio_0_reset.reset
-		.audio_0_clk_clk                                  (<connected-to-audio_0_clk_clk>)                                   //                                 audio_0_clk.clk
+		.vga_vs                                           (<connected-to-vga_vs>)                                            //                                            .vs
 	);
 

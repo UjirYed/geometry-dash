@@ -1,11 +1,23 @@
 
 module soc_system (
+	audio_0_clk_clk,
 	audio_0_external_interface_BCLK,
 	audio_0_external_interface_DACDAT,
 	audio_0_external_interface_DACLRCK,
+	audio_0_reset_reset,
 	audio_and_video_config_0_external_interface_SDAT,
 	audio_and_video_config_0_external_interface_SCLK,
 	clk_clk,
+	fifo_1_in_writedata,
+	fifo_1_in_write,
+	fifo_1_in_address,
+	fifo_1_in_waitrequest,
+	fifo_1_in_csr_address,
+	fifo_1_in_csr_read,
+	fifo_1_in_csr_writedata,
+	fifo_1_in_csr_write,
+	fifo_1_in_csr_readdata,
+	fifo_1_in_irq_irq,
 	hps_hps_io_emac1_inst_TX_CLK,
 	hps_hps_io_emac1_inst_TXD0,
 	hps_hps_io_emac1_inst_TXD1,
@@ -79,26 +91,26 @@ module soc_system (
 	vga_hs,
 	vga_r,
 	vga_sync_n,
-	vga_vs,
-	fifo_1_in_irq_irq,
-	fifo_1_in_csr_address,
-	fifo_1_in_csr_read,
-	fifo_1_in_csr_writedata,
-	fifo_1_in_csr_write,
-	fifo_1_in_csr_readdata,
-	fifo_1_in_writedata,
-	fifo_1_in_write,
-	fifo_1_in_address,
-	fifo_1_in_waitrequest,
-	audio_0_reset_reset,
-	audio_0_clk_clk);	
+	vga_vs);	
 
+	input		audio_0_clk_clk;
 	input		audio_0_external_interface_BCLK;
 	output		audio_0_external_interface_DACDAT;
 	input		audio_0_external_interface_DACLRCK;
+	input		audio_0_reset_reset;
 	inout		audio_and_video_config_0_external_interface_SDAT;
 	output		audio_and_video_config_0_external_interface_SCLK;
 	input		clk_clk;
+	input	[31:0]	fifo_1_in_writedata;
+	input		fifo_1_in_write;
+	input		fifo_1_in_address;
+	output		fifo_1_in_waitrequest;
+	input	[2:0]	fifo_1_in_csr_address;
+	input		fifo_1_in_csr_read;
+	input	[31:0]	fifo_1_in_csr_writedata;
+	input		fifo_1_in_csr_write;
+	output	[31:0]	fifo_1_in_csr_readdata;
+	output		fifo_1_in_irq_irq;
 	output		hps_hps_io_emac1_inst_TX_CLK;
 	output		hps_hps_io_emac1_inst_TXD0;
 	output		hps_hps_io_emac1_inst_TXD1;
@@ -173,16 +185,4 @@ module soc_system (
 	output	[7:0]	vga_r;
 	output		vga_sync_n;
 	output		vga_vs;
-	output		fifo_1_in_irq_irq;
-	input	[2:0]	fifo_1_in_csr_address;
-	input		fifo_1_in_csr_read;
-	input	[31:0]	fifo_1_in_csr_writedata;
-	input		fifo_1_in_csr_write;
-	output	[31:0]	fifo_1_in_csr_readdata;
-	input	[31:0]	fifo_1_in_writedata;
-	input		fifo_1_in_write;
-	input		fifo_1_in_address;
-	output		fifo_1_in_waitrequest;
-	input		audio_0_reset_reset;
-	input		audio_0_clk_clk;
 endmodule

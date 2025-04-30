@@ -3,11 +3,10 @@
  <debug showDebugMenu="0" />
  <systemtable filter="All Interfaces">
   <columns>
-   <connections preferredWidth="191" />
+   <connections preferredWidth="175" />
    <irq preferredWidth="34" />
   </columns>
  </systemtable>
- <library
-   expandedCategories="Library/Basic Functions,Library,Library/Basic Functions/On Chip Memory,Project" />
- <window width="1100" height="800" x="276" y="27" />
+ <library expandedCategories="Library,Project" />
+ <window width="1100" height="800" x="276" y="30" />
 </preferences>

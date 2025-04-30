@@ -1,11 +1,23 @@
 	component soc_system is
 		port (
+			audio_0_clk_clk                                  : in    std_logic                     := 'X';             -- clk
 			audio_0_external_interface_BCLK                  : in    std_logic                     := 'X';             -- BCLK
 			audio_0_external_interface_DACDAT                : out   std_logic;                                        -- DACDAT
 			audio_0_external_interface_DACLRCK               : in    std_logic                     := 'X';             -- DACLRCK
+			audio_0_reset_reset                              : in    std_logic                     := 'X';             -- reset
 			audio_and_video_config_0_external_interface_SDAT : inout std_logic                     := 'X';             -- SDAT
 			audio_and_video_config_0_external_interface_SCLK : out   std_logic;                                        -- SCLK
 			clk_clk                                          : in    std_logic                     := 'X';             -- clk
+			fifo_1_in_writedata                              : in    std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
+			fifo_1_in_write                                  : in    std_logic                     := 'X';             -- write
+			fifo_1_in_address                                : in    std_logic                     := 'X';             -- address
+			fifo_1_in_waitrequest                            : out   std_logic;                                        -- waitrequest
+			fifo_1_in_csr_address                            : in    std_logic_vector(2 downto 0)  := (others => 'X'); -- address
+			fifo_1_in_csr_read                               : in    std_logic                     := 'X';             -- read
+			fifo_1_in_csr_writedata                          : in    std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
+			fifo_1_in_csr_write                              : in    std_logic                     := 'X';             -- write
+			fifo_1_in_csr_readdata                           : out   std_logic_vector(31 downto 0);                    -- readdata
+			fifo_1_in_irq_irq                                : out   std_logic;                                        -- irq
 			hps_hps_io_emac1_inst_TX_CLK                     : out   std_logic;                                        -- hps_io_emac1_inst_TX_CLK
 			hps_hps_io_emac1_inst_TXD0                       : out   std_logic;                                        -- hps_io_emac1_inst_TXD0
 			hps_hps_io_emac1_inst_TXD1                       : out   std_logic;                                        -- hps_io_emac1_inst_TXD1
@@ -79,30 +91,30 @@
 			vga_hs                                           : out   std_logic;                                        -- hs
 			vga_r                                            : out   std_logic_vector(7 downto 0);                     -- r
 			vga_sync_n                                       : out   std_logic;                                        -- sync_n
-			vga_vs                                           : out   std_logic;                                        -- vs
-			fifo_1_in_irq_irq                                : out   std_logic;                                        -- irq
-			fifo_1_in_csr_address                            : in    std_logic_vector(2 downto 0)  := (others => 'X'); -- address
-			fifo_1_in_csr_read                               : in    std_logic                     := 'X';             -- read
-			fifo_1_in_csr_writedata                          : in    std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
-			fifo_1_in_csr_write                              : in    std_logic                     := 'X';             -- write
-			fifo_1_in_csr_readdata                           : out   std_logic_vector(31 downto 0);                    -- readdata
-			fifo_1_in_writedata                              : in    std_logic_vector(31 downto 0) := (others => 'X'); -- writedata
-			fifo_1_in_write                                  : in    std_logic                     := 'X';             -- write
-			fifo_1_in_address                                : in    std_logic                     := 'X';             -- address
-			fifo_1_in_waitrequest                            : out   std_logic;                                        -- waitrequest
-			audio_0_reset_reset                              : in    std_logic                     := 'X';             -- reset
-			audio_0_clk_clk                                  : in    std_logic                     := 'X'              -- clk
+			vga_vs                                           : out   std_logic                                         -- vs
 		);
 	end component soc_system;
 
 	u0 : component soc_system
 		port map (
+			audio_0_clk_clk                                  => CONNECTED_TO_audio_0_clk_clk,                                  --                                 audio_0_clk.clk
 			audio_0_external_interface_BCLK                  => CONNECTED_TO_audio_0_external_interface_BCLK,                  --                  audio_0_external_interface.BCLK
 			audio_0_external_interface_DACDAT                => CONNECTED_TO_audio_0_external_interface_DACDAT,                --                                            .DACDAT
 			audio_0_external_interface_DACLRCK               => CONNECTED_TO_audio_0_external_interface_DACLRCK,               --                                            .DACLRCK
+			audio_0_reset_reset                              => CONNECTED_TO_audio_0_reset_reset,                              --                               audio_0_reset.reset
 			audio_and_video_config_0_external_interface_SDAT => CONNECTED_TO_audio_and_video_config_0_external_interface_SDAT, -- audio_and_video_config_0_external_interface.SDAT
 			audio_and_video_config_0_external_interface_SCLK => CONNECTED_TO_audio_and_video_config_0_external_interface_SCLK, --                                            .SCLK
 			clk_clk                                          => CONNECTED_TO_clk_clk,                                          --                                         clk.clk
+			fifo_1_in_writedata                              => CONNECTED_TO_fifo_1_in_writedata,                              --                                   fifo_1_in.writedata
+			fifo_1_in_write                                  => CONNECTED_TO_fifo_1_in_write,                                  --                                            .write
+			fifo_1_in_address                                => CONNECTED_TO_fifo_1_in_address,                                --                                            .address
+			fifo_1_in_waitrequest                            => CONNECTED_TO_fifo_1_in_waitrequest,                            --                                            .waitrequest
+			fifo_1_in_csr_address                            => CONNECTED_TO_fifo_1_in_csr_address,                            --                               fifo_1_in_csr.address
+			fifo_1_in_csr_read                               => CONNECTED_TO_fifo_1_in_csr_read,                               --                                            .read
+			fifo_1_in_csr_writedata                          => CONNECTED_TO_fifo_1_in_csr_writedata,                          --                                            .writedata
+			fifo_1_in_csr_write                              => CONNECTED_TO_fifo_1_in_csr_write,                              --                                            .write
+			fifo_1_in_csr_readdata                           => CONNECTED_TO_fifo_1_in_csr_readdata,                           --                                            .readdata
+			fifo_1_in_irq_irq                                => CONNECTED_TO_fifo_1_in_irq_irq,                                --                               fifo_1_in_irq.irq
 			hps_hps_io_emac1_inst_TX_CLK                     => CONNECTED_TO_hps_hps_io_emac1_inst_TX_CLK,                     --                                         hps.hps_io_emac1_inst_TX_CLK
 			hps_hps_io_emac1_inst_TXD0                       => CONNECTED_TO_hps_hps_io_emac1_inst_TXD0,                       --                                            .hps_io_emac1_inst_TXD0
 			hps_hps_io_emac1_inst_TXD1                       => CONNECTED_TO_hps_hps_io_emac1_inst_TXD1,                       --                                            .hps_io_emac1_inst_TXD1
@@ -176,18 +188,6 @@
 			vga_hs                                           => CONNECTED_TO_vga_hs,                                           --                                            .hs
 			vga_r                                            => CONNECTED_TO_vga_r,                                            --                                            .r
 			vga_sync_n                                       => CONNECTED_TO_vga_sync_n,                                       --                                            .sync_n
-			vga_vs                                           => CONNECTED_TO_vga_vs,                                           --                                            .vs
-			fifo_1_in_irq_irq                                => CONNECTED_TO_fifo_1_in_irq_irq,                                --                               fifo_1_in_irq.irq
-			fifo_1_in_csr_address                            => CONNECTED_TO_fifo_1_in_csr_address,                            --                               fifo_1_in_csr.address
-			fifo_1_in_csr_read                               => CONNECTED_TO_fifo_1_in_csr_read,                               --                                            .read
-			fifo_1_in_csr_writedata                          => CONNECTED_TO_fifo_1_in_csr_writedata,                          --                                            .writedata
-			fifo_1_in_csr_write                              => CONNECTED_TO_fifo_1_in_csr_write,                              --                                            .write
-			fifo_1_in_csr_readdata                           => CONNECTED_TO_fifo_1_in_csr_readdata,                           --                                            .readdata
-			fifo_1_in_writedata                              => CONNECTED_TO_fifo_1_in_writedata,                              --                                   fifo_1_in.writedata
-			fifo_1_in_write                                  => CONNECTED_TO_fifo_1_in_write,                                  --                                            .write
-			fifo_1_in_address                                => CONNECTED_TO_fifo_1_in_address,                                --                                            .address
-			fifo_1_in_waitrequest                            => CONNECTED_TO_fifo_1_in_waitrequest,                            --                                            .waitrequest
-			audio_0_reset_reset                              => CONNECTED_TO_audio_0_reset_reset,                              --                               audio_0_reset.reset
-			audio_0_clk_clk                                  => CONNECTED_TO_audio_0_clk_clk                                   --                                 audio_0_clk.clk
+			vga_vs                                           => CONNECTED_TO_vga_vs                                            --                                            .vs
 		);
 
