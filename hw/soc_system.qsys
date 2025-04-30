@@ -29,7 +29,7 @@
    {
       datum baseAddress
       {
-         value = "81936";
+         value = "81968";
          type = "String";
       }
    }
@@ -77,6 +77,19 @@
          value = "0";
          type = "boolean";
       }
+      datum baseAddress
+      {
+         value = "81984";
+         type = "String";
+      }
+   }
+   element fifo_1.in_csr
+   {
+      datum baseAddress
+      {
+         value = "81920";
+         type = "String";
+      }
    }
    element fifo_1.out
    {
@@ -122,7 +135,7 @@
    {
       datum baseAddress
       {
-         value = "81920";
+         value = "81952";
          type = "String";
       }
    }
@@ -833,7 +846,7 @@
    start="hps_0.h2f_lw_axi_master"
    end="audio_and_video_config_0.avalon_av_config_slave">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00014010" />
+  <parameter name="baseAddress" value="0x00014030" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -842,7 +855,7 @@
    start="hps_0.h2f_lw_axi_master"
    end="player_sprite_0.avalon_slave_0">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00014000" />
+  <parameter name="baseAddress" value="0x00014020" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -851,7 +864,7 @@
    start="hps_0.h2f_lw_axi_master"
    end="fifo_1.in">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00020000" />
+  <parameter name="baseAddress" value="0x00014040" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
@@ -860,7 +873,7 @@
    start="hps_0.h2f_lw_axi_master"
    end="fifo_1.in_csr">
   <parameter name="arbitrationPriority" value="1" />
-  <parameter name="baseAddress" value="0x00024000" />
+  <parameter name="baseAddress" value="0x00014000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection
