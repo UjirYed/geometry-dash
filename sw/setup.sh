@@ -9,7 +9,7 @@ echo "Removing old module (if loaded)..."
 rmmod geo_dash 2>/dev/null || echo "Module was not loaded."
 
 echo "Inserting new module..."
-insmod deo_dash.ko
+insmod geo_dash.ko
 
 echo "Building userspace program..."
 make audio
