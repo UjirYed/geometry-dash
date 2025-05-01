@@ -827,7 +827,7 @@
   <parameter name="initMemContent" value="true" />
   <parameter name="initializationFileName" value="sprites.hex" />
   <parameter name="instanceID" value="NONE" />
-  <parameter name="memorySize" value="16384" />
+  <parameter name="memorySize" value="49152" />
   <parameter name="readDuringWriteMode" value="DONT_CARE" />
   <parameter name="resetrequest_enabled" value="true" />
   <parameter name="simAllowMRAMContentsFile" value="false" />
@@ -837,7 +837,7 @@
   <parameter name="slave2Latency" value="1" />
   <parameter name="useNonDefaultInitFile" value="true" />
   <parameter name="useShallowMemBlocks" value="false" />
-  <parameter name="writable" value="true" />
+  <parameter name="writable" value="false" />
  </module>
  <module name="player_sprite_0" kind="player_sprite" version="1.0" enabled="1" />
  <connection
