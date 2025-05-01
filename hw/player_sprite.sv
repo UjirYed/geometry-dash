@@ -62,7 +62,6 @@ module player_sprite(input logic        clk,
 
     always_comb begin
         {VGA_R, VGA_G, VGA_B} = {8'h0, 8'h0, 8'h0};
-		new_hcount = hcount >> 1;
         if (VGA_BLANK_n )
             if ( (hcount[10:6] == 5'd3) && (vcount >= player_y_pos) && (vcount < player_y_pos + 16) )
                 {VGA_R, VGA_G, VGA_B} = {8'hff, 8'hff, 8'hff};
