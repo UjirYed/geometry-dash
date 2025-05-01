@@ -97,7 +97,7 @@ static void write_output_flags(uint8_t *value) {
 
 static void write_audio_fifo(uint16_t sample) {
     printk("[write_audio_fifo]: attempting to write to audio fifo\n");
-    iowrite16(sample, dev.virtbase);
+    iowrite16(sample, FIFO_IN(dev.virtbase));
 }
 
 static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
@@ -198,6 +198,27 @@ static int __init geo_dash_probe(struct platform_device *pdev)
 		ret = -ENOMEM;
 		goto out_release_mem_region;
 	}
+
+	struct device_node *parent = pdev->dev.of_node->parent;
+	// How do we know that fifo is always going to be placed here??
+	struct device_node *fifo_node = of_find_node_by_name(parent, "fifo@0x100000020");
+
+	if (fifo_node) {
+        struct resource fifo_res;
+        if (of_address_to_resource(fifo_node, 0, &fifo_res) == 0) {
+            dev.audio_fifo_base = ioremap(fifo_res.start, resource_size(&fifo_res));
+            if (!dev.audio_fifo_base) {
+                pr_err("geo_dash: Failed to ioremap FIFO\n");
+                goto out_release_mem;
+            }
+        } else {
+            pr_err("geo_dash: Failed to get FIFO resource\n");
+            goto out_release_mem;
+        }
+    } else {
+        pr_err("geo_dash: FIFO node not found\n");
+        goto out_release_mem;
+    }
         
 
 	return 0;
