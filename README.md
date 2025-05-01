@@ -5,10 +5,6 @@ Physical address: 0x0000_8000
 
 # Image Table Memory Map (Sprite ROM)
 
-This design implements a memory-mapped ROM to store 256 8×8 sprites, each pixel encoded as a 24-bit RGB value.
-
----
-
 ## RAM Layout
 
 - **Total sprites**: 256  
