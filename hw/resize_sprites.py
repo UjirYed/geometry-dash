@@ -2,7 +2,7 @@ import os
 from PIL import Image
 
 IMAGE_DIR = "images"
-OUTPUT_SIZE = (16, 16)  # (width, height)
+OUTPUT_SIZE = (32, 32)  # (width, height)
 
 for filename in os.listdir(IMAGE_DIR):
     if filename.lower().endswith(".png"):

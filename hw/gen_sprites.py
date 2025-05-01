@@ -3,34 +3,39 @@ from PIL import Image
 
 IMAGE_DIR = "images"
 OUTPUT_FILE = "sprites.hex"
-WORD_COUNT = 4096
+SPRITE_DIM = (32, 32)  # width × height
+MAX_SPRITES = 16
+WORDS_EXPECTED = 49152  # 2^14 = 16384 * 3
 
 def rgb_to_word(r, g, b):
-    return (r << 16) | (g << 8) | b
+    return (r << 16) | (g << 8) | b  # 24-bit RGB
 
-words = []
-expected_size = None
+# Pre-fill memory with black pixels
+memory = [0x00000000] * WORDS_EXPECTED
 
-for filename in sorted(os.listdir(IMAGE_DIR)):
-    if filename.lower().endswith(".png"):
-        path = os.path.join(IMAGE_DIR, filename)
-        img = Image.open(path).convert("RGB")
+sprite_files = sorted([
+    f for f in os.listdir(IMAGE_DIR)
+    if f.lower().endswith(".png")
+])[:MAX_SPRITES]
 
-        if expected_size is None:
-            expected_size = img.size  # (width, height)
-        elif img.size != expected_size:
-            raise ValueError(f"ERROR: {filename} is {img.size}, expected {expected_size}")
+print(f"Found {len(sprite_files)} sprites. Filling remaining with black.")
 
-        pixels = list(img.getdata())
-        for r, g, b in pixels:
-            words.append(rgb_to_word(r, g, b))
+for image_id, filename in enumerate(sprite_files):
+    path = os.path.join(IMAGE_DIR, filename)
+    img = Image.open(path).convert("RGB")
 
-# Pad or trim to fit RAM
-words = (words + [0] * WORD_COUNT)[:WORD_COUNT]
+    if img.size != SPRITE_DIM:
+        raise ValueError(f"{filename} is {img.size}, expected {SPRITE_DIM}.")
 
+    for y in range(8):
+        for x in range(8):
+            r, g, b = img.getpixel((x, y))
+            addr = (image_id << 6) | (y << 3) | x
+            memory[addr] = rgb_to_word(r, g, b)
+
+# Write hex file
 with open(OUTPUT_FILE, "w") as f:
-    for word in words:
+    for word in memory:
         f.write(f"{word:08X}\n")
 
-print(f"Generated {OUTPUT_FILE} with {len(words)} 32-bit words from {IMAGE_DIR}/")
-print(f"Sprite size: {expected_size[0]}×{expected_size[1]}")
+print(f"✅ Wrote {OUTPUT_FILE} with {WORDS_EXPECTED} 32-bit words.")
