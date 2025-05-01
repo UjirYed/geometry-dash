@@ -50,7 +50,7 @@
 #define MAP_BLOCK(base)      ((base) + 0x0A)  // lower 8 bits used
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
-
+#define FIFO_IN              ((base) + AUDIO_FIFO_BASE_ADDR) // this is where the FIFO should be relative to base addr....?
 /*
 Information about our geometry_dash device. Acts as a mirror of hardware state.
 */
@@ -58,7 +58,7 @@ Information about our geometry_dash device. Acts as a mirror of hardware state.
 struct geo_dash_dev {
     struct resource res; /* Our registers. */
     void __iomem *virtbase; /* Where our registers can be accessed in memory. */
-	void __iomem *audio_fifo_base;
+  	void __iomem *audio_fifo_base;
     short x_shift;
 } dev;
 
@@ -96,7 +96,8 @@ static void write_output_flags(uint8_t *value) {
 }
 
 static void write_audio_fifo(uint16_t sample) {
-    iowrite16(sample, dev.audio_fifo_base);
+    printk("[write_audio_fifo]: attempting to write to audio fifo\n");
+    iowrite16(sample, FIFO_IN(dev.virtbase));
 }
 
 static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
@@ -197,6 +198,27 @@ static int __init geo_dash_probe(struct platform_device *pdev)
 		ret = -ENOMEM;
 		goto out_release_mem_region;
 	}
+
+	struct device_node *parent = pdev->dev.of_node->parent;
+	// How do we know that fifo is always going to be placed here??
+	struct device_node *fifo_node = of_find_node_by_name(parent, "fifo@0x100000020");
+
+	if (fifo_node) {
+        struct resource fifo_res;
+        if (of_address_to_resource(fifo_node, 0, &fifo_res) == 0) {
+            dev.audio_fifo_base = ioremap(fifo_res.start, resource_size(&fifo_res));
+            if (!dev.audio_fifo_base) {
+                pr_err("geo_dash: Failed to ioremap FIFO\n");
+                goto out_release_mem;
+            }
+        } else {
+            pr_err("geo_dash: Failed to get FIFO resource\n");
+            goto out_release_mem;
+        }
+    } else {
+        pr_err("geo_dash: FIFO node not found\n");
+        goto out_release_mem;
+    }
         
 
 	return 0;
@@ -220,7 +242,7 @@ static int geo_dash_remove(struct platform_device *pdev)
 /* Which "compatible" string(s) to search for in the Device Tree */
 #ifdef CONFIG_OF
 static const struct of_device_id geo_dash_of_match[] = {
-	{ .compatible = "csee4840,geo_dash-1.0" },
+	{ .compatible = "csee4840,player_sprite-1.0" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, geo_dash_of_match);
