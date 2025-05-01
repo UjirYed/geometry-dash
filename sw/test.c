@@ -15,7 +15,7 @@ void set_player_xpos(unsigned short value){
     vla.player_pos_x = value;
 
     if (ioctl(geo_dash_fd, WRITE_PLAYER_XPOSITION , &vla)) {
-      perror("ioctl(WRITE_DOG_POSITION) failed");
+      perror("ioctl(WRITE_Player_POSITION) failed");
     }
 
 }
