@@ -39,7 +39,7 @@ Each 14-bit address selects **one pixel**:
    Img     Y       X
 ```
 
-### ➡ Output Data: 24 bits (RGB)
+### Output Data: 24 bits (RGB)
 
 ```
 Output[23:0]:
@@ -97,6 +97,6 @@ lab3-hw/
 ├── images/            # PNG sprite sources (16×16, RGB)
 ├── gen_sprites.py     # PNG → HEX generator
 ├── sprites.hex        # Memory init file
-├── vga_ball.sv        # Your display logic
+├── vga_ball.sv        # Display logic
 └── soc_system.qsys    # Platform Designer system
 ```
