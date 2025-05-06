@@ -24,6 +24,11 @@
          value = "4";
          type = "int";
       }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
+      }
    }
    element audio_and_video_config_0.avalon_av_config_slave
    {
@@ -31,6 +36,14 @@
       {
          value = "81968";
          type = "String";
+      }
+   }
+   element audio_pll_0
+   {
+      datum _sortIndex
+      {
+         value = "8";
+         type = "int";
       }
    }
    element clk_0
@@ -142,7 +155,7 @@
       }
       datum sopceditor_expanded
       {
-         value = "0";
+         value = "1";
          type = "boolean";
       }
    }
@@ -186,8 +199,6 @@
    type="conduit"
    dir="end" />
  <interface name="clk" internal="clk_0.clk_in" type="clock" dir="end" />
- <interface name="fifo_1_in" internal="fifo_1.in" type="avalon" dir="end" />
- <interface name="fifo_1_in_csr" internal="fifo_1.in_csr" type="avalon" dir="end" />
  <interface
    name="fifo_1_in_irq"
    internal="fifo_1.in_irq"
@@ -202,7 +213,7 @@
    kind="altera_up_avalon_audio"
    version="18.0"
    enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="12288135" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="audio_in" value="false" />
   <parameter name="audio_out" value="true" />
@@ -214,7 +225,7 @@
    kind="altera_up_avalon_audio_and_video_config"
    version="18.0"
    enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="12288135" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="audio_in" value="Microphone to ADC" />
   <parameter name="bit_length" value="24" />
@@ -230,6 +241,17 @@
   <parameter name="mic_bypass" value="false" />
   <parameter name="sampling_rate" value="48 kHz" />
   <parameter name="video_format" value="NTSC" />
+ </module>
+ <module
+   name="audio_pll_0"
+   kind="altera_up_avalon_audio_pll"
+   version="18.0"
+   enabled="1">
+  <parameter name="AUTO_DEVICE" value="5CSEMA5F31C6" />
+  <parameter name="AUTO_DEVICE_SPEEDGRADE" value="6" />
+  <parameter name="audio_clk_freq" value="12.288" />
+  <parameter name="device_family" value="Cyclone V" />
+  <parameter name="gui_refclk" value="50.0" />
  </module>
  <module name="clk_0" kind="clock_source" version="21.1" enabled="1">
   <parameter name="clockFrequency" value="50000000" />
@@ -915,12 +937,20 @@
  <connection
    kind="clock"
    version="21.1"
-   start="clk_0.clk"
+   start="audio_pll_0.audio_clk"
+   end="audio_0.clk" />
+ <connection
+   kind="clock"
+   version="21.1"
+   start="audio_pll_0.audio_clk"
    end="audio_and_video_config_0.clk" />
- <connection kind="clock" version="21.1" start="clk_0.clk" end="audio_0.clk" />
+ <connection
+   kind="clock"
+   version="21.1"
+   start="audio_pll_0.audio_clk"
+   end="fifo_1.clk_in" />
  <connection kind="clock" version="21.1" start="clk_0.clk" end="display_buf.clk1" />
  <connection kind="clock" version="21.1" start="clk_0.clk" end="img_table.clk1" />
- <connection kind="clock" version="21.1" start="clk_0.clk" end="fifo_1.clk_in" />
  <connection
    kind="clock"
    version="21.1"
@@ -942,20 +972,20 @@
    start="clk_0.clk"
    end="hps_0.h2f_lw_axi_clock" />
  <connection
+   kind="clock"
+   version="21.1"
+   start="clk_0.clk"
+   end="audio_pll_0.ref_clk" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="clk_0.clk_reset"
+   end="audio_pll_0.ref_reset" />
+ <connection
    kind="reset"
    version="21.1"
    start="clk_0.clk_reset"
    end="player_sprite_0.reset" />
- <connection
-   kind="reset"
-   version="21.1"
-   start="clk_0.clk_reset"
-   end="audio_and_video_config_0.reset" />
- <connection
-   kind="reset"
-   version="21.1"
-   start="clk_0.clk_reset"
-   end="audio_0.reset" />
  <connection
    kind="reset"
    version="21.1"
@@ -969,7 +999,17 @@
  <connection
    kind="reset"
    version="21.1"
-   start="clk_0.clk_reset"
+   start="audio_pll_0.reset_source"
+   end="audio_0.reset" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="audio_pll_0.reset_source"
+   end="audio_and_video_config_0.reset" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="audio_pll_0.reset_source"
    end="fifo_1.reset_in" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
