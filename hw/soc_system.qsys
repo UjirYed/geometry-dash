@@ -48,6 +48,11 @@
          value = "5";
          type = "int";
       }
+      datum sopceditor_expanded
+      {
+         value = "0";
+         type = "boolean";
+      }
    }
    element display_buf.s1
    {
@@ -114,6 +119,11 @@
          value = "6";
          type = "int";
       }
+      datum sopceditor_expanded
+      {
+         value = "0";
+         type = "boolean";
+      }
    }
    element img_table.s1
    {
@@ -129,6 +139,11 @@
       {
          value = "2";
          type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "0";
+         type = "boolean";
       }
    }
    element player_sprite_0.avalon_slave_0
@@ -153,20 +168,18 @@
  <parameter name="hideFromIPCatalog" value="false" />
  <parameter name="lockedInterfaceDefinition" value="" />
  <parameter name="maxAdditionalLatency" value="1" />
- <parameter name="projectName" value="" />
+ <parameter name="projectName" value="soc_system.qpf" />
  <parameter name="sopcBorderPoints" value="false" />
  <parameter name="systemHash" value="0" />
  <parameter name="testBenchDutName" value="" />
  <parameter name="timeStamp" value="0" />
  <parameter name="useTestBenchNamingPattern" value="false" />
  <instanceScript></instanceScript>
- <interface name="audio_0_clk" internal="audio_0.clk" type="clock" dir="end" />
  <interface
    name="audio_0_external_interface"
    internal="audio_0.external_interface"
    type="conduit"
    dir="end" />
- <interface name="audio_0_reset" internal="audio_0.reset" type="reset" dir="end" />
  <interface
    name="audio_and_video_config_0_external_interface"
    internal="audio_and_video_config_0.external_interface"
@@ -189,7 +202,7 @@
    kind="altera_up_avalon_audio"
    version="18.0"
    enabled="1">
-  <parameter name="AUTO_CLK_CLOCK_RATE" value="0" />
+  <parameter name="AUTO_CLK_CLOCK_RATE" value="50000000" />
   <parameter name="AUTO_DEVICE_FAMILY" value="Cyclone V" />
   <parameter name="audio_in" value="false" />
   <parameter name="audio_out" value="true" />
@@ -904,6 +917,7 @@
    version="21.1"
    start="clk_0.clk"
    end="audio_and_video_config_0.clk" />
+ <connection kind="clock" version="21.1" start="clk_0.clk" end="audio_0.clk" />
  <connection kind="clock" version="21.1" start="clk_0.clk" end="display_buf.clk1" />
  <connection kind="clock" version="21.1" start="clk_0.clk" end="img_table.clk1" />
  <connection kind="clock" version="21.1" start="clk_0.clk" end="fifo_1.clk_in" />
@@ -937,6 +951,11 @@
    version="21.1"
    start="clk_0.clk_reset"
    end="audio_and_video_config_0.reset" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="clk_0.clk_reset"
+   end="audio_0.reset" />
  <connection
    kind="reset"
    version="21.1"
