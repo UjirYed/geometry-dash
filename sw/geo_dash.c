@@ -35,7 +35,7 @@
 #include <linux/ioctl.h>
 #include "geo_dash.h"
 
-#define DRIVER_NAME "geo_dash"
+#define DRIVER_NAME "player_sprite_0"
 #define AUDIO_FIFO_OFFSET 0x20
 
 #define AUDIO_FIFO_BASE_ADDR 0x00014040
