@@ -31,6 +31,8 @@ int main() {
             perror("ioctl WRITE_AUDIO_FIFO failed");
             break;
         }
+
+		usleep(1000);
     }
 
     printf("cleaning up\n");
