@@ -36,6 +36,7 @@
 #include "geo_dash.h"
 
 #define DRIVER_NAME "geo_dash"
+#define AUDIO_FIFO_OFFSET 0x20
 
 #define AUDIO_FIFO_BASE_ADDR 0x00014040
 
@@ -50,7 +51,8 @@
 #define MAP_BLOCK(base)      ((base) + 0x0A)  // lower 8 bits used
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
-#define FIFO_IN              ((base) + AUDIO_FIFO_BASE_ADDR) // this is where the FIFO should be relative to base addr....?
+#define FIFO_IN(base)        ((base) + AUDIO_FIFO_OFFSET)
+
 /*
 Information about our geometry_dash device. Acts as a mirror of hardware state.
 */
@@ -58,7 +60,6 @@ Information about our geometry_dash device. Acts as a mirror of hardware state.
 struct geo_dash_dev {
     struct resource res; /* Our registers. */
     void __iomem *virtbase; /* Where our registers can be accessed in memory. */
-  	void __iomem *audio_fifo_base;
     short x_shift;
 } dev;
 
@@ -96,7 +97,7 @@ static void write_output_flags(uint8_t *value) {
 }
 
 static void write_audio_fifo(uint16_t sample) {
-    printk("[write_audio_fifo]: attempting to write to audio fifo\n");
+    printk("[write_audio_fifo]: writing 0x%04x to FIFO offset 0x%X\n", sample, AUDIO_FIFO_OFFSET);
     iowrite16(sample, FIFO_IN(dev.virtbase));
 }
 
@@ -198,28 +199,6 @@ static int __init geo_dash_probe(struct platform_device *pdev)
 		ret = -ENOMEM;
 		goto out_release_mem_region;
 	}
-
-	struct device_node *parent = pdev->dev.of_node->parent;
-	// How do we know that fifo is always going to be placed here??
-	struct device_node *fifo_node = of_find_node_by_name(parent, "fifo@0x100000020");
-
-	if (fifo_node) {
-        struct resource fifo_res;
-        if (of_address_to_resource(fifo_node, 0, &fifo_res) == 0) {
-            dev.audio_fifo_base = ioremap(fifo_res.start, resource_size(&fifo_res));
-            if (!dev.audio_fifo_base) {
-                pr_err("geo_dash: Failed to ioremap FIFO\n");
-                goto out_release_mem;
-            }
-        } else {
-            pr_err("geo_dash: Failed to get FIFO resource\n");
-            goto out_release_mem;
-        }
-    } else {
-        pr_err("geo_dash: FIFO node not found\n");
-        goto out_release_mem;
-    }
-        
 
 	return 0;
 

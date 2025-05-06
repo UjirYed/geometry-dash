@@ -18,19 +18,21 @@ int main() {
         close(fd);
         return 1;
     }
+
     printf("opened audio and geo_dash device\n");
     geo_dash_arg_t arg = {0};
-    printf("audio arg: %d\n", arg.audio);
-    printf("audio arg address: %p\n", (void *) &arg.audio);
-    uint16_t sample;
-    fread(&sample, sizeof(sample), 1, audio);
-    printf("read a sample\n");
-    while (fread(&sample, sizeof(uint16_t), 1, audio) == 1) {
-        if (ioctl(fd, WRITE_AUDIO_FIFO, &sample) == -1) {
+    uint16_t dummy;
+
+    while (fread(&arg.audio, sizeof(uint16_t), 1, audio) == 1) {
+        // Skip right channel
+        fread(&dummy, sizeof(uint16_t), 1, audio);
+
+        if (ioctl(fd, WRITE_AUDIO_FIFO, &arg) == -1) {
             perror("ioctl WRITE_AUDIO_FIFO failed");
             break;
         }
     }
+
     printf("cleaning up\n");
     fclose(audio);
     close(fd);
