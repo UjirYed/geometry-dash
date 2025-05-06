@@ -229,19 +229,20 @@ MODULE_DEVICE_TABLE(of, geo_dash_of_match);
 
 /* Information for registering ourselves as a "platform" driver */
 static struct platform_driver geo_dash_driver = {
-	.driver	= {
-		.name	= DRIVER_NAME,
-		.owner	= THIS_MODULE,
+	.probe = geo_dash_probe, // move it here
+	.remove = __exit_p(geo_dash_remove),
+	.driver = {
+		.name = DRIVER_NAME,
+		.owner = THIS_MODULE,
 		.of_match_table = of_match_ptr(geo_dash_of_match),
 	},
-	.remove	= __exit_p(geo_dash_remove),
 };
 
 /* Called when the module is loaded: set things up */
 static int __init geo_dash_init(void)
 {
 	pr_info(DRIVER_NAME ": init\n");
-	return platform_driver_probe(&geo_dash_driver, geo_dash_probe);
+	return platform_driver_register(&geo_dash_driver);
 }
 
 /* Called when the module is unloaded: release resources */
