@@ -97,7 +97,7 @@ static void write_output_flags(uint8_t *value) {
 }
 
 static void write_audio_fifo(uint16_t sample) {
-    printk("[write_audio_fifo]: writing 0x%04x to FIFO offset 0x%X\n", sample, AUDIO_FIFO_OFFSET);
+    // printk("[write_audio_fifo]: writing 0x%04x to FIFO offset 0x%X\n", sample, AUDIO_FIFO_OFFSET);
     iowrite16(sample, FIFO_IN(dev.virtbase));
 }
 
