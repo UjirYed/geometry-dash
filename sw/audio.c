@@ -6,7 +6,7 @@
 #include "geo_dash.h"
 
 int main() {
-    int fd = open("/dev/geo_dash", O_RDWR);
+    int fd = open("/dev/player_sprite_0", O_RDWR);
     if (fd < 0) {
         perror("Failed to open geo_dash");
         return 1;
