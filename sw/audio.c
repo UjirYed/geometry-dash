@@ -24,15 +24,17 @@ int main() {
     uint16_t dummy;
 
     while (fread(&arg.audio, sizeof(uint16_t), 1, audio) == 1) {
+		printf("Skipping right channel\n");
         // Skip right channel
         fread(&dummy, sizeof(uint16_t), 1, audio);
 
+		printf("Attempting to ioctl\n");
         if (ioctl(fd, WRITE_AUDIO_FIFO, &arg) == -1) {
             perror("ioctl WRITE_AUDIO_FIFO failed");
             break;
         }
 
-		usleep(1000);
+		sleep(1);
     }
 
     printf("cleaning up\n");
