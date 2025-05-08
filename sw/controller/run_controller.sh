@@ -21,4 +21,4 @@ make
 
 # Run the controller
 echo "Starting controller..."
-sudo ./main 
+./main 
