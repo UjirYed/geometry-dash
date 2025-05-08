@@ -27,10 +27,10 @@ for image_id, filename in enumerate(sprite_files):
     if img.size != SPRITE_DIM:
         raise ValueError(f"{filename} is {img.size}, expected {SPRITE_DIM}.")
 
-    for y in range(8):
-        for x in range(8):
+    for y in range(32):
+        for x in range(32):
             r, g, b = img.getpixel((x, y))
-            addr = (image_id << 6) | (y << 3) | x
+            addr = (image_id << 10) | (y << 5) | x
             memory[addr] = rgb_to_word(r, g, b)
 
 # Write hex file
