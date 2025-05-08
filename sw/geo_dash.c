@@ -35,11 +35,11 @@
 #include <linux/ioctl.h>
 #include "geo_dash.h"
 
+// =============================================
+// ===== geo_dash structures and constants =====
+// =============================================
+
 #define DRIVER_NAME "player_sprite_0"
-#define AUDIO_FIFO_OFFSET 0x20
-
-#define AUDIO_FIFO_BASE_ADDR 0x00014040
-
 // Assuming that we have 16-bit registers.
 #define PLAYER_Y_POS(base)   ((base) + 0x00)  // 16-bit
 #define X_SHIFT(base)        ((base) + 0x02)  // 16-bit
@@ -51,7 +51,6 @@
 #define MAP_BLOCK(base)      ((base) + 0x0A)  // lower 8 bits used
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
-#define FIFO_IN(base)        ((base) + AUDIO_FIFO_OFFSET)
 
 /*
 Information about our geometry_dash device. Acts as a mirror of hardware state.
@@ -61,44 +60,39 @@ struct geo_dash_dev {
     struct resource res; /* Our registers. */
     void __iomem *virtbase; /* Where our registers can be accessed in memory. */
     short x_shift;
-} dev;
+} geo_dash_dev;
 
 static void write_player_y_position(unsigned short *value) {
-    iowrite16(*value, PLAYER_Y_POS(dev.virtbase));
+    iowrite16(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
 }
 
 static void write_x_shift(unsigned short *value) {
-    iowrite16(*value, X_SHIFT(dev.virtbase));
-    dev.x_shift = *value;
+    iowrite16(*value, X_SHIFT(geo_dash_dev.virtbase));
+    geo_dash_dev.x_shift = *value;
 }
 
 static void write_background_r(uint8_t *value) {
-    iowrite16((uint16_t)(*value), BACKGROUND_R(dev.virtbase));
+    iowrite16((uint16_t)(*value), BACKGROUND_R(geo_dash_dev.virtbase));
 }
 
 static void write_background_g(uint8_t *value) {
-    iowrite16((uint16_t)(*value), BACKGROUND_G(dev.virtbase));
+    iowrite16((uint16_t)(*value), BACKGROUND_G(geo_dash_dev.virtbase));
 }
 
 static void write_background_b(uint8_t *value) {
-    iowrite16((uint16_t)(*value), BACKGROUND_B(dev.virtbase));
+    iowrite16((uint16_t)(*value), BACKGROUND_B(geo_dash_dev.virtbase));
 }
 
 static void write_map_block(uint8_t *value) {
-    iowrite16((uint16_t)(*value), MAP_BLOCK(dev.virtbase));
+    iowrite16((uint16_t)(*value), MAP_BLOCK(geo_dash_dev.virtbase));
 }
 
 static void write_flags(uint8_t *value) {
-    iowrite16((uint16_t)(*value), FLAGS(dev.virtbase));
+    iowrite16((uint16_t)(*value), FLAGS(geo_dash_dev.virtbase));
 }
 
 static void write_output_flags(uint8_t *value) {
-    iowrite16((uint16_t)(*value), OUTPUT_FLAGS(dev.virtbase));
-}
-
-static void write_audio_fifo(uint16_t sample) {
-    // printk("[write_audio_fifo]: writing 0x%04x to FIFO offset 0x%X\n", sample, AUDIO_FIFO_OFFSET);
-    iowrite16(sample, FIFO_IN(dev.virtbase));
+    iowrite16((uint16_t)(*value), OUTPUT_FLAGS(geo_dash_dev.virtbase));
 }
 
 static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
@@ -142,18 +136,12 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             write_output_flags(&vla.output_flags);
             break;
 
-		case WRITE_AUDIO_FIFO:
-			write_audio_fifo(vla.audio);
-			break;
-
         default:
             return -EINVAL;  // Unknown command
     }
 
     return 0;
 }
-
-
 
 static const struct file_operations geo_dash_fops = {
     .owner = THIS_MODULE,
@@ -180,22 +168,22 @@ static int __init geo_dash_probe(struct platform_device *pdev)
 	ret = misc_register(&geo_dash_misc_device);
 
 	/* Get the address of our registers from the device tree */
-	ret = of_address_to_resource(pdev->dev.of_node, 0, &dev.res);
+	ret = of_address_to_resource(pdev->dev.of_node, 0, &geo_dash_dev.res);
 	if (ret) {
 		ret = -ENOENT;
 		goto out_deregister;
 	}
 
 	/* Make sure we can use these registers */
-	if (request_mem_region(dev.res.start, resource_size(&dev.res),
+	if (request_mem_region(geo_dash_dev.res.start, resource_size(&geo_dash_dev.res),
 			       DRIVER_NAME) == NULL) {
 		ret = -EBUSY;
 		goto out_deregister;
 	}
 	
 	/* Arrange access to our registers */
-	dev.virtbase = of_iomap(pdev->dev.of_node, 0);
-	if (dev.virtbase == NULL) {
+	geo_dash_dev.virtbase = of_iomap(pdev->dev.of_node, 0);
+	if (geo_dash_dev.virtbase == NULL) {
 		ret = -ENOMEM;
 		goto out_release_mem_region;
 	}
@@ -203,7 +191,7 @@ static int __init geo_dash_probe(struct platform_device *pdev)
 	return 0;
 
 out_release_mem_region:
-	release_mem_region(dev.res.start, resource_size(&dev.res));
+	release_mem_region(geo_dash_dev.res.start, resource_size(&geo_dash_dev.res));
 out_deregister:
 	misc_deregister(&geo_dash_misc_device);
 	return ret;
@@ -212,8 +200,8 @@ out_deregister:
 /* Clean-up code: release resources */
 static int geo_dash_remove(struct platform_device *pdev)
 {
-	iounmap(dev.virtbase);
-	release_mem_region(dev.res.start, resource_size(&dev.res));
+	iounmap(geo_dash_dev.virtbase);
+	release_mem_region(geo_dash_dev.res.start, resource_size(&geo_dash_dev.res));
 	misc_deregister(&geo_dash_misc_device);
 	return 0;
 }
@@ -225,7 +213,6 @@ static const struct of_device_id geo_dash_of_match[] = {
 	{},
 };
 MODULE_DEVICE_TABLE(of, geo_dash_of_match);
-#endif
 
 /* Information for registering ourselves as a "platform" driver */
 static struct platform_driver geo_dash_driver = {
@@ -238,16 +225,133 @@ static struct platform_driver geo_dash_driver = {
 	},
 };
 
+// ===============================================
+// ===== audio_fifo structures and constants =====
+// ===============================================
+
+#define AUDIO_FIFO_NAME "audio_fifo"
+#define AUDIO_FIFO_OFFSET 0x00 
+
+struct audio_fifo_dev {
+    struct resource res;
+    void __iomem *virtbase;
+} audio_dev;
+
+static void write_audio_fifo(uint16_t sample) {
+    iowrite16(sample, audio_dev.virtbase);
+}
+
+static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
+{
+    geo_dash_arg_t vla;
+
+    if (copy_from_user(&vla, (geo_dash_arg_t *) arg, sizeof(vla)))
+        return -EFAULT;
+
+    switch (cmd) {
+        case WRITE_AUDIO_FIFO:
+            write_audio_fifo(vla.audio);
+            break;
+        default:
+            return -EINVAL;
+    }
+
+    return 0;
+}
+static const struct file_operations audio_fifo_fops = {
+    .owner = THIS_MODULE,
+    .unlocked_ioctl = audio_fifo_ioctl
+};
+
+static struct miscdevice audio_fifo_misc_device = {
+    .minor = MISC_DYNAMIC_MINOR,
+    .name = AUDIO_FIFO_NAME,
+    .fops = &audio_fifo_fops
+};
+
+static int __init audio_fifo_probe(struct platform_device *pdev) {
+    int ret;
+
+    ret = misc_register(&audio_fifo_misc_device);
+    if (ret) {
+        pr_err("audio_fifo: failed to register misc device\n");
+        return ret;
+    }
+
+    ret = of_address_to_resource(pdev->dev.of_node, 0, &audio_dev.res);
+    if (ret) {
+        pr_err("audio_fifo: failed to get resource\n");
+        goto out_deregister;
+    }
+
+    if (request_mem_region(audio_dev.res.start, resource_size(&audio_dev.res), AUDIO_FIFO_NAME) == NULL) {
+        ret = -EBUSY;
+        goto out_deregister;
+    }
+
+    audio_dev.virtbase = of_iomap(pdev->dev.of_node, 0);
+    if (!audio_dev.virtbase) {
+        ret = -ENOMEM;
+        goto out_release;
+    }
+
+    pr_info("audio_fifo: probe successful\n");
+    return 0;
+
+out_release:
+    release_mem_region(audio_dev.res.start, resource_size(&audio_dev.res));
+out_deregister:
+    misc_deregister(&audio_fifo_misc_device);
+    return ret;
+}
+
+static int __exit audio_fifo_remove(struct platform_device *pdev) {
+    iounmap(audio_dev.virtbase);
+    release_mem_region(audio_dev.res.start, resource_size(&audio_dev.res));
+    misc_deregister(&audio_fifo_misc_device);
+    pr_info("audio_fifo: removed\n");
+    return 0;
+}
+
+#ifdef CONFIG_OF
+static const struct of_device_id audio_fifo_of_match[] = {
+    { .compatible = "ALTR,fifo-21.1" },
+    { .compatible = "ALTR,fifo-1.0" },
+    {},
+};
+MODULE_DEVICE_TABLE(of, audio_fifo_of_match);
+#endif
+
+static struct platform_driver audio_fifo_driver = {
+    .probe = audio_fifo_probe,
+    .remove = audio_fifo_remove,
+    .driver = {
+        .name = AUDIO_FIFO_NAME,
+        .owner = THIS_MODULE,
+        .of_match_table = of_match_ptr(audio_fifo_of_match),
+    },
+};
+
+// ============================================
+// =========== module init and exit ===========
+// ============================================
+
 /* Called when the module is loaded: set things up */
 static int __init geo_dash_init(void)
 {
 	pr_info(DRIVER_NAME ": init\n");
-	return platform_driver_register(&geo_dash_driver);
+	int ret;
+
+	ret = platform_driver_register(&geo_dash_driver);
+	if (ret)
+		return ret;
+	return platform_driver_register(&audio_fifo_driver);
 }
 
 /* Called when the module is unloaded: release resources */
 static void __exit geo_dash_exit(void)
 {
+	platform_driver_unregister(&audio_fifo_driver);
 	platform_driver_unregister(&geo_dash_driver);
 	pr_info(DRIVER_NAME ": exit\n");
 }
@@ -257,7 +361,4 @@ module_exit(geo_dash_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Stephen A. Edwards, Columbia University");
-MODULE_DESCRIPTION("geometry dash driver");
-
-
-
+MODULE_DESCRIPTION("geometry dash and audio FIFO driver");

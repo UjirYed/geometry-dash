@@ -6,9 +6,9 @@
 #include "geo_dash.h"
 
 int main() {
-    int fd = open("/dev/player_sprite_0", O_RDWR);
+	int fd = open("/dev/audio_fifo", O_RDWR);
     if (fd < 0) {
-        perror("Failed to open geo_dash");
+		perror("Failed to open audio_fifo");
         return 1;
     }
 
@@ -34,7 +34,7 @@ int main() {
             break;
         }
 
-		sleep(1);
+		usleep(100);
     }
 
     printf("cleaning up\n");
