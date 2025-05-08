@@ -12,9 +12,13 @@ int main() {
     while (true) {
         ControllerState state = controller_get_state();
 
-        //printf("%s %s %s %s\n");
+        printf("Left: %s | Right: %s | A: %s | Start: %s\n",
+               state.leftArrowPressed ? "Pressed" : "Released",
+               state.rightArrowPressed ? "Pressed" : "Released",
+               state.buttonAPressed ? "Pressed" : "Released",
+               state.startPressed ? "Pressed" : "Released");
         
-        sleep(0.001);
+        usleep(10000); // 10ms delay instead of sleep(0.001) which doesn't work as intended
     }
 
     return 0;
