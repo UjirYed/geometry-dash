@@ -20,13 +20,14 @@
 // ===============================================
 
 #define AUDIO_FIFO_NAME "audio_fifo"
-#define FIFO_FILL_LEVEL_OFFSET 0x00
-#define FIFO_ISTATUS_OFFSET    0x04
-#define FIFO_WRITE_OFFSET      0x40
+#define FIFO_FILL_LEVEL_OFFSET 0x0 // relative to CSR base
+#define FIFO_ISTATUS_OFFSET    0x4 // relative to CSR base
+#define FIFO_WRITE_OFFSET      0x0 // relative to FIFO base
 
 struct audio_fifo_dev {
     struct resource res;
     void __iomem *virtbase;
+	void __iomem *virtbase_csr;
 } audio_dev;
 
 static void write_audio_fifo(uint32_t sample) {
@@ -34,11 +35,11 @@ static void write_audio_fifo(uint32_t sample) {
 }
 
 static uint32_t read_fifo_fill_level(void) {
-    return ioread32(audio_dev.virtbase + FIFO_FILL_LEVEL_OFFSET);
+    return ioread32(audio_dev.virtbase_csr + FIFO_FILL_LEVEL_OFFSET);
 }
 
 static uint32_t read_fifo_status(void) {
-    return ioread32(audio_dev.virtbase + FIFO_ISTATUS_OFFSET) & 0x3F; // Only i_status bits
+    return ioread32(audio_dev.virtbase_csr + FIFO_ISTATUS_OFFSET) & 0x3F; // Only i_status bits
 }
 
 static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
@@ -118,10 +119,23 @@ static int __init audio_fifo_probe(struct platform_device *pdev) {
 		goto out_release;
 	}
 
+	audio_dev.virtbase_csr = of_iomap(pdev->dev.of_node, 1);
+	if (!audio_dev.virtbase_csr) {
+		pr_err("audio_fifo: failed to map CSR registers\n");
+		ret = -ENOMEM;
+		goto out_unmap_virtbase;
+	}
+
+
     pr_info("audio_fifo: probe successful\n");
 	pr_info("audio_fifo: virtbase mapped to %p\n", audio_dev.virtbase);
     return 0;
 
+out_unmap_virtbase:
+    iounmap(audio_dev.virtbase);
+    release_mem_region(audio_dev.res.start, resource_size(&audio_dev.res));
+    misc_deregister(&audio_fifo_misc_device);
+    return ret;
 out_release:
     release_mem_region(audio_dev.res.start, resource_size(&audio_dev.res));
 out_deregister:
@@ -131,6 +145,7 @@ out_deregister:
 
 static int __exit audio_fifo_remove(struct platform_device *pdev) {
     iounmap(audio_dev.virtbase);
+	iounmap(audio_dev.virtbase_csr);
     release_mem_region(audio_dev.res.start, resource_size(&audio_dev.res));
     misc_deregister(&audio_fifo_misc_device);
     pr_info("audio_fifo: removed\n");
