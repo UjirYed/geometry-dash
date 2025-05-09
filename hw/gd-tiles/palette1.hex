@@ -1,0 +1,19 @@
+FF 00 00 00  // Red
+00 FF 00 00  // Green
+00 00 FF 00  // Blue
+FF FF 00 00  // Yellow
+00 FF FF 00  // Cyan
+02 0b 49 00  // Dark Blue
+FF C0 CB 00  // Pink
+A4 00 66 00  // Magenta
+FF A5 00 00  // Orange
+80 00 80 00  // Purple
+00 FF 7F 00  // Spring green
+1E 90 FF 00  // Dodger blue
+A5 2A 2A 00  // Brown
+FF FF FF 00  // White
+C0 C0 C0 00  // Light gray
+80 80 80 00  // Dark gray
+00 00 00 00  // Black
+ 
+
