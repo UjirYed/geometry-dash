@@ -4,7 +4,6 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
-#include <sys/ioctl.h>
 
 #include "geo_dash.h"
 
@@ -50,8 +49,8 @@ void init_wm8731() {
     // Power down control: everything on
     wm8731_write(i2c_fd, 0x06, 0x000);
 
-    // Digital audio interface format: I2S, 16-bit, MCLK slave
-    wm8731_write(i2c_fd, 0x07, 0x002);
+    // Digital audio interface format: I2S, 16-bit, MCLK slave (left justified)
+    wm8731_write(i2c_fd, 0x07, 0x000);
 
     // Sampling control: normal mode, 48kHz
     wm8731_write(i2c_fd, 0x08, 0x000);
@@ -80,6 +79,8 @@ void print_fifo_status(uint32_t status) {
 int main() {
 	printf("Initializing Audio CODEC\n");
 	init_wm8731();
+
+	usleep(1000);
 
 	int fd = open("/dev/audio_fifo", O_RDWR);
     if (fd < 0) {
@@ -112,13 +113,15 @@ int main() {
     while (fread(&arg.audio, sizeof(uint16_t), 1, audio) == 1) {
 		// printf("Skipping right channel\n");
         // Skip right channel
-        fread(&dummy, sizeof(uint16_t), 1, audio);
+        fread(&dummy, sizeof(uint16_t), 1, audio);  // skip right
 
-		// printf("Attempting to ioctl\n");
-        if (ioctl(fd, WRITE_AUDIO_FIFO, &arg) == -1) {
-            perror("ioctl WRITE_AUDIO_FIFO failed");
-            break;
-        }
+		// Shift left sample into upper 16 bits, right = 0
+		arg.audio = ((uint32_t)arg.audio << 16);
+
+		if (ioctl(fd, WRITE_AUDIO_FIFO, &arg) == -1) {
+			perror("ioctl WRITE_AUDIO_FIFO failed");
+			break;
+		}
 		
 		uint32_t status;
 		if ((i++ % 1000) == 0) {

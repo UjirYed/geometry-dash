@@ -41,7 +41,7 @@ typedef struct {
     uint8_t  map_block;        // Current map block
     uint8_t  flags;            // Game flags
     uint8_t  output_flags;     // Output status flags
-    uint16_t audio;            // Audio sample
+    uint32_t audio;            // Audio sample
 } geo_dash_arg_t;
 
 // IOCTL commands

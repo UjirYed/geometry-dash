@@ -240,8 +240,8 @@ struct audio_fifo_dev {
     void __iomem *virtbase;
 } audio_dev;
 
-static void write_audio_fifo(uint16_t sample) {
-    iowrite16(sample, audio_dev.virtbase + FIFO_WRITE_OFFSET);
+static void write_audio_fifo(uint32_t sample) {
+    iowrite32(sample, audio_dev.virtbase + FIFO_WRITE_OFFSET);
 }
 
 static uint32_t read_fifo_fill_level(void) {
