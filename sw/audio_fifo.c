@@ -13,7 +13,7 @@
 #include <linux/fs.h>
 #include <linux/uaccess.h>
 #include <linux/ioctl.h>
-#include "geo_dash.h"
+#include "audio_fifo.h"
 
 // ===============================================
 // ===== audio_fifo structures and constants =====
@@ -163,8 +163,8 @@ static void __exit audio_fifo_exit(void)
     pr_info("audio_fifo: exit\n");
 }
 
-module_init(geo_dash_init);
-module_exit(geo_dash_exit);
+module_init(audio_fifo_init);
+module_exit(audio_fifo_exit);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Stephen A. Edwards, Columbia University");
