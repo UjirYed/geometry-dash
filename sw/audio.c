@@ -41,11 +41,11 @@ int main() {
 	int i = 0;
 
     while (fread(&arg.audio, sizeof(uint16_t), 1, audio) == 1) {
-		printf("Skipping right channel\n");
+		// printf("Skipping right channel\n");
         // Skip right channel
         fread(&dummy, sizeof(uint16_t), 1, audio);
 
-		printf("Attempting to ioctl\n");
+		// printf("Attempting to ioctl\n");
         if (ioctl(fd, WRITE_AUDIO_FIFO, &arg) == -1) {
             perror("ioctl WRITE_AUDIO_FIFO failed");
             break;
