@@ -47,8 +47,8 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
 
     switch (cmd) {
         case WRITE_AUDIO_FIFO: {
-            geo_dash_arg_t vla;
-            if (copy_from_user(&vla, (geo_dash_arg_t *) arg, sizeof(vla)))
+            audio_fifo_arg_t vla;
+            if (copy_from_user(&vla, (audio_fifo_arg_t __user *) arg, sizeof(vla)))
                 return -EFAULT;
             write_audio_fifo(vla.audio);
             break;
