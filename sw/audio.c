@@ -116,7 +116,7 @@ int main() {
         fread(&dummy, sizeof(uint16_t), 1, audio);  // skip right
 
 		// Shift left sample into upper 16 bits, right = 0
-		arg.audio = ((uint32_t)arg.audio << 16);
+		arg.audio = (uint32_t)arg.audio;
 
 		if (ioctl(fd, WRITE_AUDIO_FIFO, &arg) == -1) {
 			perror("ioctl WRITE_AUDIO_FIFO failed");
