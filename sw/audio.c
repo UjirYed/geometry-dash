@@ -55,9 +55,20 @@ int main() {
 		if ((i++ % 50) == 0) {
 			if (ioctl(fd, READ_AUDIO_STATUS, &status) == -1) {
 				perror("ioctl READ_AUDIO_STATUS failed");
+				close(fd);
+				return 1;
 			} else {
 				print_fifo_status(status);
 			}
+
+			uint32_t fill_level;
+			if (ioctl(fd, READ_AUDIO_FILL_LEVEL, &fill_level) == -1) {
+				perror("ioctl READ_AUDIO_FILL_LEVEL failed");
+				close(fd);
+				return 1;
+			}
+
+			printf("FIFO fill level: %u\n", fill_level);
 		}
 
 		usleep(100);

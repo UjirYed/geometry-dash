@@ -56,6 +56,7 @@ typedef struct {
 #define WRITE_FLAGS            _IOW(GEO_DASH_MAGIC, 6, geo_dash_arg_t *)
 #define WRITE_OUTPUT_FLAGS     _IOW(GEO_DASH_MAGIC, 7, geo_dash_arg_t *)
 #define WRITE_AUDIO_FIFO       _IOW(GEO_DASH_MAGIC, 9, geo_dash_arg_t *)
-#define READ_AUDIO_STATUS      _IOR(GEO_DASH_MAGIC, 10, uint32_t *)
+#define READ_AUDIO_FILL_LEVEL  _IOR(GEO_DASH_MAGIC, 10, uint32_t *)
+#define READ_AUDIO_STATUS      _IOR(GEO_DASH_MAGIC, 11, uint32_t *)
 
 #endif
