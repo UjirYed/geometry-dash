@@ -98,6 +98,7 @@ static void write_output_flags(uint8_t *value) {
 static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
     geo_dash_arg_t vla;
+	printk(KERN_INFO "geo_dash_ioctl called with cmd 0x%x\n", cmd);
 
     // Copy user struct into kernel space
     if (copy_from_user(&vla, (geo_dash_arg_t *) arg, sizeof(vla)))
@@ -255,6 +256,8 @@ static uint32_t read_fifo_status(void) {
 
 static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
+	printk(KERN_INFO "audio_fifo_ioctl called with cmd 0x%x\n", cmd);
+
     switch (cmd) {
         case WRITE_AUDIO_FIFO: {
             geo_dash_arg_t vla;
