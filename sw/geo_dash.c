@@ -231,7 +231,8 @@ static struct platform_driver geo_dash_driver = {
 // ===============================================
 
 #define AUDIO_FIFO_NAME "audio_fifo"
-#define AUDIO_FIFO_OFFSET 0x00 
+#define FIFO_WRITE_OFFSET      0x40
+#define FIFO_ISTATUS_OFFSET    0x04
 
 struct audio_fifo_dev {
     struct resource res;
@@ -239,11 +240,11 @@ struct audio_fifo_dev {
 } audio_dev;
 
 static void write_audio_fifo(uint16_t sample) {
-    iowrite16(sample, audio_dev.virtbase);
+    iowrite16(sample, audio_dev.virtbase + FIFO_WRITE_OFFSET);
 }
 
 static uint32_t read_fifo_status(void) {
-    return ioread32(audio_dev.virtbase + 0x00) & 0x3F; // Only i_status bits
+    return ioread32(audio_dev.virtbase + FIFO_ISTATUS_OFFSET) & 0x3F; // Only i_status bits
 }
 
 static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
@@ -259,6 +260,10 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
             break;
 		case READ_AUDIO_STATUS: {
 			uint32_t status = read_fifo_status();
+			if (copy_to_user((uint32_t *)arg, &status, sizeof(status)))
+				return -EFAULT;
+			
+			break;
 		}
         default:
             return -EINVAL;
