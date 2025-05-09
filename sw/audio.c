@@ -5,7 +5,7 @@
 #include <sys/ioctl.h>
 #include <linux/i2c-dev.h>
 
-#include "geo_dash.h"
+#include "audio_fifo.h"
 
 
 #define I2C_DEV "/dev/i2c-0"  // Might be /dev/i2c-1 on some boards
@@ -77,8 +77,8 @@ void print_fifo_status(uint32_t status) {
 }
 
 int main() {
-	// printf("Initializing Audio CODEC\n");
-	// init_wm8731();
+	printf("Initializing Audio CODEC\n");
+	init_wm8731();
 
 	usleep(1000);
 
@@ -95,8 +95,8 @@ int main() {
         return 1;
     }
 
-    printf("opened audio and geo_dash device\n");
-    geo_dash_arg_t arg = {0};
+    printf("Opened audio_fifo device and audio file\n");
+    audio_fifo_arg_t arg = {0};
     uint16_t dummy;
 	
 
