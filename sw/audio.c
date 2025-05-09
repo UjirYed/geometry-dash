@@ -52,7 +52,7 @@ int main() {
         }
 		
 		uint32_t status;
-		if ((i++ % 50) == 0) {
+		if ((i++ % 1000) == 0) {
 			if (ioctl(fd, READ_AUDIO_STATUS, &status) == -1) {
 				perror("ioctl READ_AUDIO_STATUS failed");
 				close(fd);
