@@ -23,7 +23,7 @@ module tiles
    logic [9:0] 	       hcount;          // From counters
    logic [8:0] 	       vcount;
 
-   logic [4:0] 	       hcount1;         // Pipeline registers (5 bits for 32 pixels)
+   logic [2:0] 	       hcount1;         // Pipeline registers
    logic 	       VGA_HS0, VGA_HS1, VGA_HS2;
    logic 	       VGA_BLANK_n0, VGA_BLANK_n1, VGA_BLANK_n2;	       
    
@@ -41,18 +41,18 @@ module tiles
 
    twoportbram #(.DATA_BITS(8), .ADDRESS_BITS(13))  // Tile Map
    tilemap(.clk1  ( VGA_CLK ), .clk2 ( mem_clk ),
-	   .addr1 ( { vcount[8:5], hcount[9:5] } ), // Changed from [8:3],[9:3] to [8:5],[9:5] for 32 pixel tiles
+	   .addr1 ( { vcount[8:3], hcount[9:3] } ),
 	   .we1   ( 1'b0 ), .din1( 8'h X ), .dout1( tilenumber ),
 	   .addr2 ( tm_address ),
 	   .we2   ( tm_we ), .din2( tm_din ), .dout2( tm_dout ));
    
    always_ff @(posedge VGA_CLK)                     // Pipeline registers
      { hcount1, VGA_BLANK_n1, VGA_HS1 } <=
-       { hcount[4:0], VGA_BLANK_n0, VGA_HS0 };      // Changed from [2:0] to [4:0] for 32 pixel tiles
+       { hcount[2:0], VGA_BLANK_n0, VGA_HS0 };
       
    twoportbram #(.DATA_BITS(4), .ADDRESS_BITS(14))  // Tile Set
    tileset(.clk1  ( VGA_CLK ), .clk2 ( mem_clk ),
-	   .addr1 ( { tilenumber, vcount[4:0], hcount1 } ), // Changed from [2:0] to [4:0] for local coordinates
+	   .addr1 ( { tilenumber, vcount[2:0], hcount1 } ),
 	   .we1   ( 1'b0 ), .din1( 4'h X), .dout1( colorindex ),
 	   .addr2 ( ts_address ),
 	   .we2   ( ts_we ), .din2( ts_din ), .dout2( ts_dout ));   
