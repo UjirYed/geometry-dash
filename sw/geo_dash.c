@@ -163,6 +163,7 @@ static int __init geo_dash_probe(struct platform_device *pdev)
         //cat_invaders_color_t beige = { 0xf9, 0xe4, 0xb7 };
 		//audio_t audio_begin = { 0x00, 0x00, 0x00 };
 	int ret;
+	pr_info("geo_dash: probe successful\n");
 
 	/* Register ourselves as a misc device: creates /dev/geo_dash */
 	ret = misc_register(&geo_dash_misc_device);
@@ -297,6 +298,7 @@ static struct miscdevice audio_fifo_misc_device = {
 
 static int __init audio_fifo_probe(struct platform_device *pdev) {
     int ret;
+	pr_info("audio_fifo: probe successful\n");
 
     ret = misc_register(&audio_fifo_misc_device);
     if (ret) {
