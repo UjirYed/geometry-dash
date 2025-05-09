@@ -242,6 +242,10 @@ static void write_audio_fifo(uint16_t sample) {
     iowrite16(sample, audio_dev.virtbase);
 }
 
+static uint32_t read_fifo_status(void) {
+    return ioread32(audio_dev.virtbase + 0x00);
+}
+
 static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
     geo_dash_arg_t vla;
@@ -253,6 +257,13 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
         case WRITE_AUDIO_FIFO:
             write_audio_fifo(vla.audio);
             break;
+		case READ_AUDIO_STATUS: {
+			uint32_t status = read_fifo_status();
+			if (copy_to_user((uint32_t *)arg, &status, sizeof(status)))
+				return -EFAULT;
+			break;
+		}
+			
         default:
             return -EINVAL;
     }
