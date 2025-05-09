@@ -263,17 +263,19 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
         case WRITE_AUDIO_FIFO:
             write_audio_fifo(vla.audio);
             break;
-		case READ_AUDIO_STATUS:
+		case READ_AUDIO_STATUS: {
 			uint32_t status = read_fifo_status();
 			if (copy_to_user((uint32_t *)arg, &status, sizeof(status)))
 				return -EFAULT;
 			
 			break;
-		case READ_AUDIO_FILL_LEVEL:
+		}
+		case READ_AUDIO_FILL_LEVEL: {
 			uint32_t level = read_fifo_fill_level();
 			if (copy_to_user((uint32_t *)arg, &level, sizeof(level)))
 				return -EFAULT;
 			break;
+		}
         default:
             return -EINVAL;
     }
