@@ -254,34 +254,36 @@ static uint32_t read_fifo_status(void) {
 
 static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
-    geo_dash_arg_t vla;
-
-    if (copy_from_user(&vla, (geo_dash_arg_t *) arg, sizeof(vla)))
-        return -EFAULT;
-
     switch (cmd) {
-        case WRITE_AUDIO_FIFO:
+        case WRITE_AUDIO_FIFO: {
+            geo_dash_arg_t vla;
+            if (copy_from_user(&vla, (geo_dash_arg_t *) arg, sizeof(vla)))
+                return -EFAULT;
             write_audio_fifo(vla.audio);
             break;
-		case READ_AUDIO_STATUS: {
-			uint32_t status = read_fifo_status();
-			if (copy_to_user((uint32_t *)arg, &status, sizeof(status)))
-				return -EFAULT;
-			
-			break;
-		}
-		case READ_AUDIO_FILL_LEVEL: {
-			uint32_t level = read_fifo_fill_level();
-			if (copy_to_user((uint32_t *)arg, &level, sizeof(level)))
-				return -EFAULT;
-			break;
-		}
+        }
+
+        case READ_AUDIO_STATUS: {
+            uint32_t status = read_fifo_status();
+            if (copy_to_user((uint32_t *)arg, &status, sizeof(status)))
+                return -EFAULT;
+            break;
+        }
+
+        case READ_AUDIO_FILL_LEVEL: {
+            uint32_t level = read_fifo_fill_level();
+            if (copy_to_user((uint32_t *)arg, &level, sizeof(level)))
+                return -EFAULT;
+            break;
+        }
+
         default:
             return -EINVAL;
     }
 
     return 0;
 }
+
 static const struct file_operations audio_fifo_fops = {
     .owner = THIS_MODULE,
     .unlocked_ioctl = audio_fifo_ioctl

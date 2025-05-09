@@ -77,8 +77,8 @@ void print_fifo_status(uint32_t status) {
 }
 
 int main() {
-	printf("Initializing Audio CODEC\n");
-	init_wm8731();
+	// printf("Initializing Audio CODEC\n");
+	// init_wm8731();
 
 	usleep(1000);
 
