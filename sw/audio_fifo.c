@@ -96,66 +96,69 @@ static struct miscdevice audio_fifo_misc_device = {
 static int __init audio_fifo_probe(struct platform_device *pdev) {
     int ret;
 
-	pr_info("audio_fifo: probe successful\n");
+    pr_info("audio_fifo: probe started\n");
 
+    // Register misc device
     ret = misc_register(&audio_fifo_misc_device);
     if (ret) {
         pr_err("audio_fifo: failed to register misc device\n");
         return ret;
     }
 
+    // Get FIFO memory resource
     ret = of_address_to_resource(pdev->dev.of_node, 0, &audio_dev.res_fifo);
-	if (ret) {
-		pr_err("audio_fifo: failed to get FIFO resource\n");
-		goto out_deregister;
-	}
-	if (!request_mem_region(audio_dev.res_fifo.start, resource_size(&audio_dev.res_fifo), AUDIO_FIFO_NAME)) {
-		ret = -EBUSY;
-		goto out_deregister;
-	}
+    if (ret) {
+        pr_err("audio_fifo: failed to get FIFO resource\n");
+        goto out_deregister;
+    }
+    if (!request_mem_region(audio_dev.res_fifo.start, resource_size(&audio_dev.res_fifo), AUDIO_FIFO_NAME)) {
+        ret = -EBUSY;
+        goto out_deregister;
+    }
 
-	ret = of_address_to_resource(pdev->dev.of_node, 1, &audio_dev.res_csr);
-	if (ret) {
-		pr_err("audio_fifo: failed to get CSR resource\n");
-		goto out_release_fifo;
-	}
-	if (!request_mem_region(audio_dev.res_csr.start, resource_size(&audio_dev.res_csr), AUDIO_FIFO_NAME "_csr")) {
-		ret = -EBUSY;
-		goto out_release_fifo;
-	}
+    // Get CSR memory resource
+    ret = of_address_to_resource(pdev->dev.of_node, 1, &audio_dev.res_csr);
+    if (ret) {
+        pr_err("audio_fifo: failed to get CSR resource\n");
+        goto out_release_fifo;
+    }
+    if (!request_mem_region(audio_dev.res_csr.start, resource_size(&audio_dev.res_csr), AUDIO_FIFO_NAME "_csr")) {
+        ret = -EBUSY;
+        goto out_release_fifo;
+    }
 
-
+    // Map FIFO base
     audio_dev.virtbase = of_iomap(pdev->dev.of_node, 0);
     if (!audio_dev.virtbase) {
-		pr_err("audio_fifo: failed to map registers\n");
-		ret = -ENOMEM;
-		goto out_release;
-	}
+        pr_err("audio_fifo: failed to map FIFO registers\n");
+        ret = -ENOMEM;
+        goto out_release_csr;
+    }
 
-	audio_dev.virtbase_csr = of_iomap(pdev->dev.of_node, 1);
-	if (!audio_dev.virtbase_csr) {
-		pr_err("audio_fifo: failed to map CSR registers\n");
-		ret = -ENOMEM;
-		goto out_release_csr;
-	}
+    // Map CSR base
+    audio_dev.virtbase_csr = of_iomap(pdev->dev.of_node, 1);
+    if (!audio_dev.virtbase_csr) {
+        pr_err("audio_fifo: failed to map CSR registers\n");
+        ret = -ENOMEM;
+        goto out_unmap_fifo;
+    }
 
     pr_info("audio_fifo: probe successful\n");
-	pr_info("audio_fifo: virtbase mapped to %p\n", audio_dev.virtbase);
+    pr_info("audio_fifo: FIFO mapped to %p, CSR mapped to %p\n", audio_dev.virtbase, audio_dev.virtbase_csr);
     return 0;
 
-out_unmap_virtbase:
+// Cleanup paths
+out_unmap_fifo:
     iounmap(audio_dev.virtbase);
-    release_mem_region(audio_dev.res_fifo.start, resource_size(&audio_dev.res_fifo));
-    misc_deregister(&audio_fifo_misc_device);
-    return ret;
 out_release_csr:
     release_mem_region(audio_dev.res_csr.start, resource_size(&audio_dev.res_csr));
-out_release:
-	release_mem_region(audio_dev.res_fifo.start, resource_size(&audio_dev.res_fifo));
+out_release_fifo:
+    release_mem_region(audio_dev.res_fifo.start, resource_size(&audio_dev.res_fifo));
 out_deregister:
     misc_deregister(&audio_fifo_misc_device);
     return ret;
 }
+
 
 static int __exit audio_fifo_remove(struct platform_device *pdev) {
 	iounmap(audio_dev.virtbase);
