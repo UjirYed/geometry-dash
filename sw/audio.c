@@ -100,14 +100,14 @@ int main() {
     uint16_t dummy;
 	
 
-	uint32_t fill_level;
-	if (ioctl(fd, READ_AUDIO_FILL_LEVEL, &fill_level) == -1) {
-		perror("ioctl READ_AUDIO_FILL_LEVEL failed");
-		close(fd);
-		return 1;
-	}
+	//uint32_t fill_level;
+	//if (ioctl(fd, READ_AUDIO_FILL_LEVEL, &fill_level) == -1) {
+	//	perror("ioctl READ_AUDIO_FILL_LEVEL failed");
+	//	close(fd);
+	//	return 1;
+	//}
 
-	printf("Initial FIFO fill level: %u\n", fill_level);
+	//printf("Initial FIFO fill level: %u\n", fill_level);
 
 	int i = 0;
     while (fread(&arg.audio, sizeof(uint16_t), 1, audio) == 1) {
@@ -122,10 +122,11 @@ int main() {
 			perror("ioctl WRITE_AUDIO_FIFO failed");
 			break;
 		}
-		
+	/*	
 		uint32_t status;
 		if ((i++ % 1000) == 0) {
-			if (ioctl(fd, READ_AUDIO_STATUS, &status) == -1) {
+			
+      if (ioctl(fd, READ_AUDIO_STATUS, &status) == -1) {
 				perror("ioctl READ_AUDIO_STATUS failed");
 				close(fd);
 				return 1;
@@ -142,7 +143,7 @@ int main() {
 
 			printf("FIFO fill level: %u\n", fill_level);
 		}
-
+*/
 		usleep(100);
     }
 

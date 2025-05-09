@@ -51,6 +51,7 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
 	}
     switch (cmd) {
 		case WRITE_AUDIO_FIFO: {
+      printk(KERN_INFO "WRITE_AUDIO_FIFO");
 			audio_fifo_arg_t vla;
 			if (copy_from_user(&vla, (audio_fifo_arg_t __user *)arg, sizeof(vla)))
 				return -EFAULT;
@@ -59,6 +60,7 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
 		}
 	
 		case READ_AUDIO_STATUS: {
+      printk(KERN_INFO "READ_AUDIO_STATUS");
 			uint32_t status = read_fifo_status();
 			if (copy_to_user((uint32_t __user *)arg, &status, sizeof(status)))
 				return -EFAULT;
@@ -66,6 +68,7 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
 		}
 	
 		case READ_AUDIO_FILL_LEVEL: {
+      printk(KERN_INFO "READ_AUDIO_FILL_LEVEL");
 			uint32_t level = read_fifo_fill_level();
 			if (copy_to_user((uint32_t __user *)arg, &level, sizeof(level)))
 				return -EFAULT;
