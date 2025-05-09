@@ -213,6 +213,7 @@ static const struct of_device_id geo_dash_of_match[] = {
 	{},
 };
 MODULE_DEVICE_TABLE(of, geo_dash_of_match);
+#endif
 
 /* Information for registering ourselves as a "platform" driver */
 static struct platform_driver geo_dash_driver = {
@@ -339,8 +340,9 @@ static struct platform_driver audio_fifo_driver = {
 /* Called when the module is loaded: set things up */
 static int __init geo_dash_init(void)
 {
+  int ret;
+
 	pr_info(DRIVER_NAME ": init\n");
-	int ret;
 
 	ret = platform_driver_register(&geo_dash_driver);
 	if (ret)
