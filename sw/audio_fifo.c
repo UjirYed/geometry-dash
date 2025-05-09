@@ -20,9 +20,7 @@
 // ===============================================
 
 #define AUDIO_FIFO_NAME "audio_fifo"
-#define FIFO_FILL_LEVEL_OFFSET 0x0 // relative to CSR base
 #define FIFO_ISTATUS_OFFSET    0x4 // relative to CSR base
-#define FIFO_WRITE_OFFSET      0x0 // relative to FIFO base
 
 struct audio_fifo_dev {
     struct resource res;
@@ -33,11 +31,11 @@ struct audio_fifo_dev {
 } audio_dev;
 
 static void write_audio_fifo(uint32_t sample) {
-    iowrite32(sample, audio_dev.virtbase + FIFO_WRITE_OFFSET);
+    iowrite32(sample, audio_dev.virtbase);
 }
 
 static uint32_t read_fifo_fill_level(void) {
-    return ioread32(audio_dev.virtbase_csr + FIFO_FILL_LEVEL_OFFSET);
+    return ioread32(audio_dev.virtbase_csr);
 }
 
 static uint32_t read_fifo_status(void) {
