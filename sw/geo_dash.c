@@ -243,7 +243,7 @@ static void write_audio_fifo(uint16_t sample) {
 }
 
 static uint32_t read_fifo_status(void) {
-    return ioread32(audio_dev.virtbase + 0x00);
+    return ioread32(audio_dev.virtbase + 0x00) & 0x3F; // Only i_status bits
 }
 
 static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
@@ -258,12 +258,8 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
             write_audio_fifo(vla.audio);
             break;
 		case READ_AUDIO_STATUS: {
-			uint32_t status = ioread32(audio_dev.virtbase + 0x00) & 0x3F; // Only i_status bits
-			if (copy_to_user((uint32_t *)arg, &status, sizeof(status)))
-				return -EFAULT;
-			break;
+			uint32_t status = read_fifo_status();
 		}
-			
         default:
             return -EINVAL;
     }
