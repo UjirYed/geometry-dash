@@ -43,12 +43,12 @@ static uint32_t read_fifo_status(void) {
 
 static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
-	printk(KERN_INFO "audio_fifo_ioctl called with cmd 0x%x\n", cmd);
+    printk(KERN_INFO "audio_fifo_ioctl called with cmd 0x%x\n", cmd);
 
     switch (cmd) {
         case WRITE_AUDIO_FIFO: {
             audio_fifo_arg_t vla;
-            if (copy_from_user(&vla, (audio_fifo_arg_t __user *) arg, sizeof(vla)))
+            if (copy_from_user(&vla, (audio_fifo_arg_t __user *)arg, sizeof(vla)))
                 return -EFAULT;
             write_audio_fifo(vla.audio);
             break;
@@ -56,14 +56,14 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
 
         case READ_AUDIO_STATUS: {
             uint32_t status = read_fifo_status();
-            if (copy_to_user((uint32_t *)arg, &status, sizeof(status)))
+            if (copy_to_user((uint32_t __user *)arg, &status, sizeof(status)))
                 return -EFAULT;
             break;
         }
 
         case READ_AUDIO_FILL_LEVEL: {
             uint32_t level = read_fifo_fill_level();
-            if (copy_to_user((uint32_t *)arg, &level, sizeof(level)))
+            if (copy_to_user((uint32_t __user *)arg, &level, sizeof(level)))
                 return -EFAULT;
             break;
         }
@@ -74,6 +74,7 @@ static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg
 
     return 0;
 }
+
 
 static const struct file_operations audio_fifo_fops = {
     .owner = THIS_MODULE,
