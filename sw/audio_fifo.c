@@ -44,7 +44,10 @@ static uint32_t read_fifo_status(void) {
 static long audio_fifo_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 {
     printk(KERN_INFO "audio_fifo_ioctl called with cmd 0x%x\n", cmd);
-
+	if (!audio_dev.virtbase) {
+		pr_err("audio_fifo_ioctl: virtbase is NULL\n");
+		return -EIO;
+	}
     switch (cmd) {
 		case WRITE_AUDIO_FIFO: {
 			audio_fifo_arg_t vla;
@@ -110,11 +113,13 @@ static int __init audio_fifo_probe(struct platform_device *pdev) {
 
     audio_dev.virtbase = of_iomap(pdev->dev.of_node, 0);
     if (!audio_dev.virtbase) {
-        ret = -ENOMEM;
-        goto out_release;
-    }
+		pr_err("audio_fifo: failed to map registers\n");
+		ret = -ENOMEM;
+		goto out_release;
+	}
 
     pr_info("audio_fifo: probe successful\n");
+	pr_info("audio_fifo: virtbase mapped to %p\n", audio_dev.virtbase);
     return 0;
 
 out_release:
