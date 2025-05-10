@@ -20,11 +20,13 @@
 #define JUMP_VELOCITY 10      // Initial jump velocity
 #define GRAVITY 1             // Gravity acceleration
 #define BLOCK_SIZE 32         // Size of a block in pixels
-#define SCREEN_COLS 20        // Number of columns on screen
-#define DISPLAY_HEIGHT 6      // Height of level in blocks
+#define SCREEN_COLS 20        // Number of columns on screen (640/32 = 20)
+#define DISPLAY_HEIGHT 15     // Height of level in blocks (480/32 = 15)
 #define DISPLAY_WIDTH 128     // Width of level buffer
 #define PLAYER_X 80           // Fixed player X position on screen
 #define LEVEL_LENGTH 1024     // Length of the level in blocks
+#define TILEMAP_WIDTH 40      // Width of double-screen tilemap (SCREEN_COLS * 2)
+#define MAX_SCROLL_OFFSET 1280 // Maximum scroll offset (TILEMAP_WIDTH * BLOCK_SIZE)
 
 typedef struct {
     int x_pos;                // Position in the level (pixels)
@@ -43,10 +45,11 @@ int level_position = 0;       // Current position in level
 int score = 0;                // Player score
 int fd;                       // File descriptor for device
 int gravity_direction = 1;    // 1 for normal, -1 for inverted
+int scroll_offset = 0;        // Tile scrolling offset (0-1279 pixels)
 
 // Level data
 uint8_t level_buf[LEVEL_LENGTH];   // Level data buffer
-uint8_t disp_buf[DISPLAY_WIDTH];   // Display buffer
+uint8_t disp_buf[TILEMAP_WIDTH];   // Display buffer (double-width for scrolling)
 
 // Function prototypes
 int loadMapAndMusic(void);
@@ -54,74 +57,38 @@ int runGamePhysics(void);
 void updateDisplay(void);
 int getUserInput(void);
 void startAudioPlayback(void);
-void copyNextColumn(void);
+void initializeScrollingTilemap(void);
+void updateScrollingTilemap(void);
 void checkCollisions(void);
 void initializeGame(void);
 void gameOver(void);
 void handleObstacleEffect(uint8_t obstacle_type);
 
+// Example main function to show continuous scrolling
 int main() {
-    int current_state = LOADING;
-    
-    // Open the device file
+    // Open the driver
     fd = open("/dev/player_sprite_0", O_RDWR);
-    if (fd == -1) {
+    if (fd < 0) {
         perror("Error opening device");
         return -1;
     }
-    
-    // Seed random number generator
-    srand(time(NULL));
-    
+
+    // Initialize the game
     initializeGame();
     
+    // Main game loop
     while (1) {
         // Get user input
         button_pressed = getUserInput();
         
-        switch (current_state) {
-            case LOADING:
-                if (loadMapAndMusic()) {
-                    current_state = READY;
-                    printf("Game ready! Press button to start.\n");
-                }
-                break;
-                
-            case READY:
-                if (button_pressed) {
-                    current_state = PLAYING;
-                    startAudioPlayback();
-                    printf("Game started!\n");
-                }
-                break;
-                
-            case PLAYING:
-                runGamePhysics();
-                checkCollisions();
-                updateDisplay();
-                
-                // Check if player died
-                if (player.is_dead) {
-                    current_state = GAME_OVER;
-                    gameOver();
-                }
-                
-                // Increment score based on distance traveled
-                score += PLAYER_SPEED;
-                break;
-                
-            case GAME_OVER:
-                if (button_pressed) {
-                    // Reset game
-                    initializeGame();
-                    current_state = READY;
-                    printf("Game reset! Press button to start.\n");
-                }
-                break;
-        }
+        // Run physics
+        runGamePhysics();
         
-        // Small delay to control game speed
-        usleep(16667); // ~60 FPS
+        // Update game display
+        updateDisplay();
+        
+        // Sleep a bit (60 FPS approx)
+        usleep(16667);
     }
     
     close(fd);
@@ -146,16 +113,71 @@ void initializeGame() {
     // Generate a new level
     generate_level(level_buf, LEVEL_LENGTH);
     
+    // Initialize the double-width scrolling tilemap
+    initializeScrollingTilemap();
+    
     // Reset display
     updateDisplay();
 }
 
-int loadMapAndMusic() {
-    // Initialize display buffer
-    for (int i = 0; i < DISPLAY_WIDTH; i++) {
+// Initialize the double-width scrolling tilemap with the initial level data
+void initializeScrollingTilemap() {
+    // Fill the first screen with level data
+    for (int i = 0; i < SCREEN_COLS; i++) {
         disp_buf[i] = level_buf[i];
     }
     
+    // Fill the second screen with the next part of the level
+    for (int i = 0; i < SCREEN_COLS; i++) {
+        disp_buf[i + SCREEN_COLS] = level_buf[i + SCREEN_COLS];
+    }
+    
+    // Initialize scroll offset to 0
+    scroll_offset = 0;
+    
+    // Send initial scroll offset to hardware
+    geo_dash_arg_t arg;
+    arg.scroll_offset = scroll_offset;
+    ioctl(fd, WRITE_SCROLL_OFFSET, &arg);
+}
+
+// Update the scrolling tilemap when the player moves
+void updateScrollingTilemap() {
+    // Calculate which screen we're currently displaying
+    int current_screen = scroll_offset / (SCREEN_COLS * BLOCK_SIZE);
+    
+    // When we've scrolled half a screen width, update the content of the offscreen part
+    if (scroll_offset % (SCREEN_COLS * BLOCK_SIZE) == 0 && scroll_offset > 0) {
+        int update_start;
+        int level_start;
+        
+        if (current_screen == 0) {
+            // We're viewing the first screen, update the second screen
+            update_start = SCREEN_COLS;
+            level_start = level_position / BLOCK_SIZE + SCREEN_COLS * 2;
+        } else {
+            // We're viewing the second screen, update the first screen
+            update_start = 0;
+            level_start = level_position / BLOCK_SIZE + SCREEN_COLS * 2;
+        }
+        
+        // Update tiles in the offscreen area
+        for (int i = 0; i < SCREEN_COLS; i++) {
+            int level_idx = level_start + i;
+            if (level_idx < LEVEL_LENGTH) {
+                disp_buf[update_start + i] = level_buf[level_idx];
+            } else {
+                disp_buf[update_start + i] = 0; // Empty tile if beyond level length
+            }
+        }
+        
+        // Write the updated tilemap to hardware
+        // In a real implementation, you would update the tilemap memory through the Avalon interface
+        // This is simplified for illustration
+    }
+}
+
+int loadMapAndMusic() {
     // Set the background to the initial color
     geo_dash_arg_t arg;
     arg.bg_r = 50;
@@ -223,30 +245,14 @@ int runGamePhysics() {
     // Move the level (player stays in fixed position)
     player.x_pos += PLAYER_SPEED;
     level_position += PLAYER_SPEED;
-    x_shift += PLAYER_SPEED;
     
-    // If we've shifted by a full block, update the display buffer
-    if (x_shift >= BLOCK_SIZE) {
-        x_shift -= BLOCK_SIZE;
-        copyNextColumn();
-    }
+    // Update scroll offset for the double-width buffer
+    scroll_offset = (scroll_offset + PLAYER_SPEED) % MAX_SCROLL_OFFSET;
+    
+    // Check if we need to update the tilemap content for continuous scrolling
+    updateScrollingTilemap();
     
     return 1;
-}
-
-void copyNextColumn() {
-    // Shift all columns left
-    for (int i = 0; i < DISPLAY_WIDTH - 1; i++) {
-        disp_buf[i] = disp_buf[i + 1];
-    }
-    
-    // Add new column from level data
-    int next_block = level_position / BLOCK_SIZE + DISPLAY_WIDTH;
-    if (next_block < LEVEL_LENGTH) {
-        disp_buf[DISPLAY_WIDTH - 1] = level_buf[next_block];
-    } else {
-        disp_buf[DISPLAY_WIDTH - 1] = EMPTY; // End of level
-    }
 }
 
 void handleObstacleEffect(uint8_t obstacle_type) {
@@ -324,9 +330,13 @@ void updateDisplay() {
     arg.player_y = player.y_pos;
     ioctl(fd, WRITE_PLAYER_Y_POS, &arg);
     
-    // Update x shift for scrolling
+    // Update x shift for scrolling (fine pixel adjustment)
     arg.x_shift = x_shift;
     ioctl(fd, WRITE_X_SHIFT, &arg);
+    
+    // Update the scroll offset for the double-width tilemap
+    arg.scroll_offset = scroll_offset;
+    ioctl(fd, WRITE_SCROLL_OFFSET, &arg);
     
     // Update map block (assuming this controls which part of the level is shown)
     arg.map_block = level_position / BLOCK_SIZE;

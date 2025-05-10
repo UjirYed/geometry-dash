@@ -6,12 +6,14 @@
  *
  * Memory map:
  *
- * 0000 - 1FFF Tilemap (8K, tile number is 8 bits per byte)
+ * 0000 - 3FFF Tilemap (16K, tile number is 8 bits per byte) - doubled in size
  * 2000 - 203F Palette (64, 24 bits every 4 bytes)
+ * 3000 - 3001 Scroll Offset (16-bit value)
  * 4000 - 7FFF Tileset (16K, color index is lower 4 bits of each byte)
  *
  * 00m mmmm mmmm mmmm  Tilemap
  * 010 0000 00pp ppbb  Palette
+ * 011 0000 0000 00aa  Scroll Offset (aa = 0 for low byte, 1 for high byte)
  * 1ss ssss ssss ssss  Tileset
  *
  * In the 64-byte palette region, every color occupies 4 bytes, although
@@ -53,23 +55,33 @@ module vga_tiles
    logic [7:0] 	      tm_dout;                       // Data from tilemap
    logic [3:0] 	      ts_dout;                       // Data from tileset
    logic [23:0]       creg, palette_dout;            // Data to/from palette
+   
+   // New scroll offset registers
+   logic [9:0]        scroll_offset;                 // 10-bit scroll offset value
+   logic              scroll_low_we, scroll_high_we; // Write enables for scroll offset
 
    tiles tiles(.mem_clk        ( clk           ),
-	       .tm_address     ( address[12:0] ), .tm_din     ( writedata      ),
-	       .ts_address     ( address[13:0] ), .ts_din     ( writedata[3:0] ),
-	       .palette_address( address[5:2]  ), .palette_din( creg           ), .*);
+	       .tm_address     ( address[13:0] ), // Increased from 12:0 to 13:0 for double width
+	       .tm_din         ( writedata      ),
+	       .ts_address     ( address[13:0] ),
+	       .ts_din         ( writedata[3:0] ),
+	       .palette_address( address[5:2]  ),
+	       .palette_din    ( creg           ),
+	       .scroll_offset  ( scroll_offset  ), // Pass the scroll offset to tiles module
+	       .*);
    assign VGA_CLK = vga_clk_in;
 
    always_comb begin                                   // Address Decoder
-      {tm_we, ts_we, palette_we, creg_write, readdata } = { 6'b 0, 8'h xx };
+      {tm_we, ts_we, palette_we, creg_write, scroll_low_we, scroll_high_we, readdata } = { 8'b 0, 8'h xx };
       if (chipselect)
 	if (address[14] == 1'b 1) begin                // Tileset 1--------------
 	   ts_we    = write;                           //  Write to tileset mem
 	   readdata = { 4'h 0, ts_dout };              //  Read lower 4 bits; pad upper
-	end else if (address[13] == 1'b 0) begin       // Tilemap 00-------------
+	end else if (address[13:12] == 2'b 00) begin   // Tilemap 00-------------
 	   tm_we    = write;                           //  Write to tilemap mem
 	   readdata = tm_dout;                         //  Read 8 bits
-	end else if ( address[12:6] == 7'b 0_0000_00 ) // Palette 010000000------
+	end else if (address[13:12] == 2'b 01 && 
+	            address[11:6] == 6'b000000) begin  // Palette 010000000------
 	   case (address[1:0])
 	     2'h 0 : begin readdata = palette_dout[7:0];   // Read red byte
            		   creg_write[0] = write;          // creg <- red
@@ -84,6 +96,17 @@ module vga_tiles
                            palette_we = write;             // mem <- creg
                      end
 	   endcase
+	end else if (address[13:12] == 2'b01 && 
+	           address[11:1] == 11'b10000000000) begin // Scroll register 0110000000000-
+	   case (address[0])
+	      1'b0 : begin readdata = scroll_offset[7:0];  // Low byte
+	                   scroll_low_we = write;          // Low byte write
+	             end
+	      1'b1 : begin readdata = {6'b0, scroll_offset[9:8]}; // High byte (only need 2 bits)
+	                   scroll_high_we = write;         // High byte write
+	             end
+	   endcase
+	end
    end
 
    always_ff @(posedge clk or posedge reset)
@@ -91,5 +114,11 @@ module vga_tiles
 	if (creg_write[0]) creg[7:0]   <= writedata;    // Write byte (color)
 	if (creg_write[1]) creg[15:8]  <= writedata;    // to creg according to
 	if (creg_write[2]) creg[23:16] <= writedata;    // creg_write bits
+     end
+
+   always_ff @(posedge clk or posedge reset)
+     if (reset) scroll_offset <= 10'b0; else begin
+        if (scroll_low_we) scroll_offset[7:0] <= writedata;      // Low byte
+        if (scroll_high_we) scroll_offset[9:8] <= writedata[1:0]; // High byte (only 2 bits)
      end
 endmodule

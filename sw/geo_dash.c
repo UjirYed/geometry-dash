@@ -51,6 +51,7 @@
 #define MAP_BLOCK(base)      ((base) + 0x0A)  // lower 8 bits used
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
+#define SCROLL_OFFSET(base)  ((base) + 0x10)  // 16-bit  - added for tile scroll
 
 /*
 Information about our geometry_dash device. Acts as a mirror of hardware state.
@@ -60,6 +61,7 @@ struct geo_dash_dev {
     struct resource res; /* Our registers. */
     void __iomem *virtbase; /* Where our registers can be accessed in memory. */
     short x_shift;
+    short scroll_offset;   /* Added to keep track of scroll offset */
 } geo_dash_dev;
 
 static void write_player_y_position(unsigned short *value) {
@@ -93,6 +95,11 @@ static void write_flags(uint8_t *value) {
 
 static void write_output_flags(uint8_t *value) {
     iowrite16((uint16_t)(*value), OUTPUT_FLAGS(geo_dash_dev.virtbase));
+}
+
+static void write_scroll_offset(unsigned short *value) {
+    iowrite16(*value, SCROLL_OFFSET(geo_dash_dev.virtbase));
+    geo_dash_dev.scroll_offset = *value;
 }
 
 static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
@@ -135,6 +142,10 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
         case WRITE_OUTPUT_FLAGS:
             write_output_flags(&vla.output_flags);
+            break;
+            
+        case WRITE_SCROLL_OFFSET:
+            write_scroll_offset(&vla.scroll_offset);
             break;
 
         default:
