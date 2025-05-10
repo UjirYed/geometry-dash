@@ -103,9 +103,10 @@ int main(int argc, char *argv[]) {
     }
     
     // Set palette
-    arg.rgb = 0xff0000; // Red color
-    for (int i = 0; i++; i < 8) {
+    arg.rgb = 0xff000000; // Red color
+    for (int i = 0; i < 8; i++) {
         arg.color_index = i;
+        printf("calling ioctl]\n");
         if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
             perror("Error writing palette");
             close(fd);

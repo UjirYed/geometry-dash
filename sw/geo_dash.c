@@ -45,8 +45,8 @@
 #define X_SHIFT(base)        ((base) + 0x02)  // 16-bit
 
 #define TILEMAP(base)   ((base))  // lower 8 bits used
-#define TILESET(base)   ((base) + 0x2000)  // lower 8 bits used
-#define PALETTE(base)   ((base) + 0x4000)  // lower 8 bits used
+#define PALETTE(base)   ((base) + 0x2000)  // lower 8 bits used
+#define TILESET(base)   ((base) + 0x4000)  // lower 8 bits used
 
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
@@ -65,20 +65,24 @@ struct geo_dash_dev {
 
 static void write_tile(uint8_t *value, int row, int col)
 {
+    pr_info("writing %d to tile map at row %d, col %d", *value, row, col);
     void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
     iowrite8(*value, tilemap_location);
 }
 
-static void write_palette(uint32_t *rgb, int i)
+static void write_palette(uint32_t *rgb, int color_index)
 {
-    void *rgb_location = PALETTE(geo_dash_dev.virtbase) + 4 * i;
+    pr_info("writing color %x at index %d to palette", *rgb, color_index);
+    void *rgb_location = PALETTE(geo_dash_dev.virtbase) + 4 * color_index;
     iowrite32(*rgb, rgb_location);
 }
 
 static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
 {
     /*writing to the pixel in that specific tile. */
+    //pr_info("writing to tile");
     iowrite8(*value, TILESET(geo_dash_dev.virtbase) + tile_no * 32 * 32 + pixel_no);
+    
 }
 static void write_player_y_position(unsigned short *value) {
     iowrite16(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
@@ -116,9 +120,11 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             write_tile(&vla.tile_value, vla.tilemap_row, vla.tilemap_col);
             break;
         case WRITE_PALETTE:
+            pr_info("writing to palette\n");            
             write_palette(&vla.rgb, vla.color_index);
             break;
         case WRITE_TILESET: ;
+//            pr_info("writing to tile set\n");
             /* this should write 32x32 bytes to the location requested*/
             int i = 0;
             for (i = 0; i < 32; i++) {
