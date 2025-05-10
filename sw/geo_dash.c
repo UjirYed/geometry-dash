@@ -44,9 +44,9 @@
 #define PLAYER_Y_POS(base)   ((base) + 0x00)  // 16-bit
 #define X_SHIFT(base)        ((base) + 0x02)  // 16-bit
 
-#define TILEMAP(base)   ((base))  // lower 8 bits used
-#define PALETTE(base)   ((base) + 0x2000)  // lower 8 bits used
-#define TILESET(base)   ((base) + 0x4000)  // lower 8 bits used
+#define TILEMAP(base)   ((base))
+#define PALETTE(base)   ((base) + 0x2000) 
+#define TILESET(base)   ((base) + 0x4000)
 
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
