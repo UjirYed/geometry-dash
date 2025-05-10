@@ -29,13 +29,13 @@ module tiles
    logic 	       VGA_HS0, VGA_HS1, VGA_HS2;
    logic 	       VGA_BLANK_n0, VGA_BLANK_n1, VGA_BLANK_n2;	       
    
-   logic [7:0] 	       tilenumber;      // Memory outputs
-   logic [3:0] 	       colorindex;
-
    /* verilator lint_off UNUSED */
+   logic [7:0] 	       tilenumber;      // Memory outputs - only bits [3:0] used in tileset addressing
    logic               unconnected;     // Extra vcount bit from counters
    /* verilator lint_on UNUSED */
    
+   logic [3:0] 	       colorindex;
+
    // Calculate the effective horizontal counter with scrolling applied
    logic [9:0]         effective_hcount;
    assign effective_hcount = hcount + scroll_offset;
@@ -46,7 +46,7 @@ module tiles
    
    // Map screen coordinates to tile coordinates
    assign v_tile = vcount[8:5];         // Divide y by 32 (5 bit shift)
-   assign h_tile = effective_hcount[9:5]; // Divide x by 32
+   assign h_tile = {1'b0, effective_hcount[9:5]}; // Divide x by 32, zero-extend to 6 bits
    
    vga_counters cntrs(.vcount( {unconnected, vcount} ), // VGA Counters
 		      .VGA_BLANK_n( VGA_BLANK_n0 ),
