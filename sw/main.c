@@ -67,7 +67,7 @@ void handleObstacleEffect(uint8_t obstacle_type);
 // Example main function to show continuous scrolling
 int main() {
     // Open the driver
-    fd = open("/dev/player_sprite_0", O_RDWR);
+    fd = open("/dev/geo_dash", O_RDWR);
     if (fd < 0) {
         perror("Error opening device");
         return -1;

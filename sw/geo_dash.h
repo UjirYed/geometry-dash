@@ -46,6 +46,9 @@ typedef struct {
     uint8_t  tile_value;
     int tilemap_row;
     int tilemap_col;
+    uint8_t tileset[32][32];
+    uint32_t rgb;
+    int tile_no;
 } geo_dash_arg_t;
 
 // IOCTL commands
@@ -61,5 +64,6 @@ typedef struct {
 #define WRITE_OUTPUT_FLAGS     _IOW(GEO_DASH_MAGIC, 7, geo_dash_arg_t *)
 #define WRITE_SCROLL_OFFSET    _IOW(GEO_DASH_MAGIC, 8, geo_dash_arg_t *)
 #define WRITE_TILE             _IOW(GEO_DASH_MAGIC, 9, geo_dash_arg_t *)
-
+#define WRITE_PALETTE          _IOW(GEO_DASH_MAGIC, 10, geo_dash_arg_t *)
+#define WRITE_TILESET          _IOW(GEO_DASH_MAGIC, 11, geo_dash_arg_t *)
 #endif

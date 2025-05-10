@@ -10,7 +10,7 @@
 
 int main() {
     geo_dash_arg_t arg;
-    fd = open("/dev/player_sprite_0", O_RDWR);
+    int fd = open("/dev/geo_dash", O_RDWR);
     if (fd < 0) {
         perror("Error opening device");
         return -1;
@@ -18,7 +18,7 @@ int main() {
     
     arg.tilemap_col = 0;
     arg.tilemap_row = 0;
-    arg.tile_value = 1
+    arg.tile_value = 1;
 
     ioctl(fd, WRITE_TILE, &arg);
 }

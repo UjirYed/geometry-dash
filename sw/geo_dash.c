@@ -65,10 +65,21 @@ struct geo_dash_dev {
 
 static void write_tile(uint8_t *value, int row, int col)
 {
-    void *tilemap_location = TILEMAP(geo_dash.dev.virtbase) + row * 40 + col;
+    void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
     iowrite8(*value, tilemap_location);
 }
 
+static void write_palette(uint32_t *rgb, int i)
+{
+    void *rgb_location = PALETTE(geo_dash_dev.virtbase) + 4 * i;
+    iowrite8(*rgb, rgb_location);
+}
+
+static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
+{
+    /*writing to the pixel in that specific tile. */
+    iowrite(*value, TILESET(geo_dash_dev.virtbase) + tile_no * 32 * 32 + pixel_no)
+}
 static void write_player_y_position(unsigned short *value) {
     iowrite16(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
 }
@@ -76,22 +87,6 @@ static void write_player_y_position(unsigned short *value) {
 static void write_x_shift(unsigned short *value) {
     iowrite16(*value, X_SHIFT(geo_dash_dev.virtbase));
     geo_dash_dev.x_shift = *value;
-}
-
-static void write_background_r(uint8_t *value) {
-    iowrite16((uint16_t)(*value), BACKGROUND_R(geo_dash_dev.virtbase));
-}
-
-static void write_background_g(uint8_t *value) {
-    iowrite16((uint16_t)(*value), BACKGROUND_G(geo_dash_dev.virtbase));
-}
-
-static void write_background_b(uint8_t *value) {
-    iowrite16((uint16_t)(*value), BACKGROUND_B(geo_dash_dev.virtbase));
-}
-
-static void write_map_block(uint8_t *value) {
-    iowrite16((uint16_t)(*value), MAP_BLOCK(geo_dash_dev.virtbase));
 }
 
 static void write_flags(uint8_t *value) {
@@ -120,28 +115,24 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
         case WRITE_TILE:
             write_tile(&vla.tile_value, &vla.tilemap_row, &vla.tilemap_col);
             break;
+        case WRITE_PALETTE:
+            write_palette()
+            break;
+        case WRITE_TILESET:
+            /* this should write a 32x32 bytes to the location requested*/
+            for (int i = 0; i < 32; i++) {
+                for (int j = 0; j < 32; j++) {
+                    write_tileset(&vla.tileset[i][j], vla.tile_no, 32*i+j);
+                }
+            }
+            break;
+
         case WRITE_X_SHIFT:
             write_x_shift(&vla.x_shift);
             break;
 
         case WRITE_PLAYER_Y_POS:
             write_player_y_position(&vla.player_y);
-            break;
-
-        case WRITE_BACKGROUND_R:
-            write_background_r(&vla.bg_r);
-            break;
-
-        case WRITE_BACKGROUND_G:
-            write_background_g(&vla.bg_g);
-            break;
-
-        case WRITE_BACKGROUND_B:
-            write_background_b(&vla.bg_b);
-            break;
-
-        case WRITE_MAP_BLOCK:
-            write_map_block(&vla.map_block);
             break;
 
         case WRITE_FLAGS:
