@@ -39,16 +39,15 @@
 // ===== geo_dash structures and constants =====
 // =============================================
 
-#define DRIVER_NAME "player_sprite_0"
+#define DRIVER_NAME "geo_dash"
 // Assuming that we have 16-bit registers.
 #define PLAYER_Y_POS(base)   ((base) + 0x00)  // 16-bit
 #define X_SHIFT(base)        ((base) + 0x02)  // 16-bit
 
-#define BACKGROUND_R(base)   ((base) + 0x04)  // lower 8 bits used
-#define BACKGROUND_G(base)   ((base) + 0x06)  // lower 8 bits used
-#define BACKGROUND_B(base)   ((base) + 0x08)  // lower 8 bits used
+#define TILEMAP(base)   ((base))  // lower 8 bits used
+#define TILESET(base)   ((base) + 0x2000)  // lower 8 bits used
+#define PALETTE(base)   ((base) + 0x4000)  // lower 8 bits used
 
-#define MAP_BLOCK(base)      ((base) + 0x0A)  // lower 8 bits used
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
 #define SCROLL_OFFSET(base)  ((base) + 0x10)  // 16-bit  - added for tile scroll
@@ -63,6 +62,12 @@ struct geo_dash_dev {
     short x_shift;
     short scroll_offset;   /* Added to keep track of scroll offset */
 } geo_dash_dev;
+
+static void write_tile(uint8_t *value, int row, int col)
+{
+    void *tilemap_location = TILEMAP(geo_dash.dev.virtbase) + row * 40 + col;
+    iowrite8(*value, tilemap_location);
+}
 
 static void write_player_y_position(unsigned short *value) {
     iowrite16(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
@@ -112,6 +117,9 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
         return -EFAULT;
 
     switch (cmd) {
+        case WRITE_TILE:
+            write_tile(&vla.tile_value, &vla.tilemap_row, &vla.tilemap_col);
+            break;
         case WRITE_X_SHIFT:
             write_x_shift(&vla.x_shift);
             break;
@@ -222,7 +230,7 @@ static int geo_dash_remove(struct platform_device *pdev)
 /* Which "compatible" string(s) to search for in the Device Tree */
 #ifdef CONFIG_OF
 static const struct of_device_id geo_dash_of_match[] = {
-	{ .compatible = "csee4840,player_sprite-1.0" },
+	{ .compatible = "csee4840,vga_tiles-1.0" },
 	{},
 };
 MODULE_DEVICE_TABLE(of, geo_dash_of_match);

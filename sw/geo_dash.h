@@ -43,6 +43,9 @@ typedef struct {
     uint8_t  output_flags;     // Output status flags
     uint32_t audio;            // Audio sample
     uint16_t scroll_offset;    // Tile scrolling offset (new field)
+    uint8_t  tile_value;
+    int tilemap_row;
+    int tilemap_col;
 } geo_dash_arg_t;
 
 // IOCTL commands
@@ -57,5 +60,6 @@ typedef struct {
 #define WRITE_FLAGS            _IOW(GEO_DASH_MAGIC, 6, geo_dash_arg_t *)
 #define WRITE_OUTPUT_FLAGS     _IOW(GEO_DASH_MAGIC, 7, geo_dash_arg_t *)
 #define WRITE_SCROLL_OFFSET    _IOW(GEO_DASH_MAGIC, 8, geo_dash_arg_t *)
+#define WRITE_TILE             _IOW(GEO_DASH_MAGIC, 9, geo_dash_arg_t *)
 
 #endif
