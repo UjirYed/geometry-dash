@@ -48,6 +48,7 @@ typedef struct {
     int tilemap_col;
     uint8_t tileset[32][32];
     uint32_t rgb;
+    int color_index;
     int tile_no;
 } geo_dash_arg_t;
 

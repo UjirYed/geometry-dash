@@ -72,13 +72,13 @@ static void write_tile(uint8_t *value, int row, int col)
 static void write_palette(uint32_t *rgb, int i)
 {
     void *rgb_location = PALETTE(geo_dash_dev.virtbase) + 4 * i;
-    iowrite8(*rgb, rgb_location);
+    iowrite32(*rgb, rgb_location);
 }
 
 static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
 {
     /*writing to the pixel in that specific tile. */
-    iowrite(*value, TILESET(geo_dash_dev.virtbase) + tile_no * 32 * 32 + pixel_no)
+    iowrite8(*value, TILESET(geo_dash_dev.virtbase) + tile_no * 32 * 32 + pixel_no);
 }
 static void write_player_y_position(unsigned short *value) {
     iowrite16(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
@@ -113,15 +113,17 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
     switch (cmd) {
         case WRITE_TILE:
-            write_tile(&vla.tile_value, &vla.tilemap_row, &vla.tilemap_col);
+            write_tile(&vla.tile_value, vla.tilemap_row, vla.tilemap_col);
             break;
         case WRITE_PALETTE:
-            write_palette()
+            write_palette(&vla.rgb, vla.color_index);
             break;
-        case WRITE_TILESET:
-            /* this should write a 32x32 bytes to the location requested*/
-            for (int i = 0; i < 32; i++) {
-                for (int j = 0; j < 32; j++) {
+        case WRITE_TILESET: ;
+            /* this should write 32x32 bytes to the location requested*/
+            int i = 0;
+            for (i = 0; i < 32; i++) {
+                int j = 0;
+                for (j = 0; j < 32; j++) {
                     write_tileset(&vla.tileset[i][j], vla.tile_no, 32*i+j);
                 }
             }
