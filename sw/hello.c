@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
     // Set tile
     arg.tilemap_col = 0;
     arg.tilemap_row = 0;
-    arg.tile_value = 1;
+    arg.tile_value = 0;
     if (ioctl(fd, WRITE_TILE, &arg) < 0) {
         perror("Error writing tile");
         close(fd);
@@ -104,14 +104,17 @@ int main(int argc, char *argv[]) {
     
     // Set palette
     arg.rgb = 0xff0000; // Red color
-    arg.color_index = 0;
-    if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
-        perror("Error writing palette");
-        close(fd);
-        return -1;
+    for (int i = 0; i++; i < 8) {
+        arg.color_index = i;
+        if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
+            perror("Error writing palette");
+            close(fd);
+            return -1;
+        }
     }
     
     // Write the tileset to the device
+    arg.tile_no = 0;
     if (ioctl(fd, WRITE_TILESET, &arg) < 0) {
         perror("Error writing tileset");
         close(fd);
