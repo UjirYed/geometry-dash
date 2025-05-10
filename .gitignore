@@ -45,3 +45,5 @@ hps_sdram_p0_all_pins.txt
 !soc_system_top.sv
 !soc_system_board_info.xml
 !soc_system.srf
+!tileset_generator.html
+!tilemap_generator.html
