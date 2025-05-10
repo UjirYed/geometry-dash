@@ -96,17 +96,23 @@ int main(int argc, char *argv[]) {
     arg.tilemap_col = 0;
     arg.tilemap_row = 0;
     arg.tile_value = 0;
-    if (ioctl(fd, WRITE_TILE, &arg) < 0) {
-        perror("Error writing tile");
-        close(fd);
-        return -1;
+
+    for (int i = 0; i < 10; i++) {
+        arg.tile_col = i;
+        printf("writing tile id %d to tile map.\n", arg.tile_col)
+        if (ioctl(fd, WRITE_TILE, &arg) < 0) {
+            perror("Error writing tile");
+            close(fd);
+            return -1;
+        }
     }
+   
     
     // Set palette
     arg.rgb = 0xff000000; // Red color
     for (int i = 0; i < 8; i++) {
         arg.color_index = i;
-        printf("calling ioctl]\n");
+        printf("calling palette ioctl\n");
         if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
             perror("Error writing palette");
             close(fd);
