@@ -121,7 +121,15 @@ int main(int argc, char *argv[]) {
     printf("the tile value at 0,0 is: %d\n", arg.tile_value);
 
     // Set palette
-    arg.rgb = 0x000000ff; // Red color
+    arg.rgb = 0xff000001; // Red color
+    arg.color_index = 0;
+    if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
+        perror("Error writing palette");
+        close(fd);
+        return -1;
+    }
+    arg.rgb = 0x00ff0001; // Red color
+    arg.color_index = 6;
     if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
         perror("Error writing palette");
         close(fd);

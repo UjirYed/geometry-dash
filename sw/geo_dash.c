@@ -73,8 +73,16 @@ static void write_tile(uint8_t *value, int row, int col)
 static void write_palette(uint32_t *rgb, int color_index)
 {
     pr_info("writing color %x at index %d to palette", *rgb, color_index);
-    void *rgb_location = PALETTE(geo_dash_dev.virtbase);
-    iowrite32(*rgb, rgb_location);
+    uint8_t r = (*rgb >> 16) & 0xFF;
+    uint8_t g = (*rgb >> 8) & 0xFF;
+    uint8_t b = (*rgb) & 0xFF;
+
+    uintptr_t addr = (uintptr_t) PALETTE(geo_dash_dev.virtbase) + color_index * 4;
+    
+    iowrite8(r, addr);
+    iowrite8(g, addr + 1);
+    iowrite8(b, addr + 2);
+    iowrite8(0x01, addr + 3);
 }
 
 static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
