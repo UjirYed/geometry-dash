@@ -95,7 +95,7 @@ static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
 
 static uint8_t read_tile(int row, int col)
 {
-      void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
+      uintptr_t tilemap_location = uintptr_t TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
       return ioread8(tilemap_location);
 }
 
@@ -146,6 +146,7 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
 
     switch (cmd) {
         case WRITE_TILE:
+            pr_info("writing %d to tilemap at %d, %d", vla.tile_value, vla.tilemap_row, vla.tilemap_col);
             write_tile(&vla.tile_value, vla.tilemap_row, vla.tilemap_col);
             break;
         

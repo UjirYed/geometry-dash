@@ -99,11 +99,11 @@ int main(int argc, char *argv[]) {
     /* Populate the tile map. */
     arg.tilemap_col = 0;
     arg.tilemap_row = 0;
-    arg.tile_value = 0;
 
     for (int i = 0; i < 10; i++) {
         arg.tilemap_col = i;
-        printf("writing tile id %d to tile map.\n", arg.tilemap_col);
+        arg.tile_value = i;
+        printf("writing tile id %d to tile map.\n", arg.tile_value);
         if (ioctl(fd, WRITE_TILE, &arg) < 0) {
             perror("Error writing tile");
             close(fd);
