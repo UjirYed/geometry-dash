@@ -73,7 +73,7 @@ static void write_tile(uint8_t *value, int row, int col)
 static void write_palette(uint32_t *rgb, int color_index)
 {
     pr_info("writing color %x at index %d to palette", *rgb, color_index);
-    void *rgb_location = PALETTE(geo_dash_dev.virtbase) + 4 * color_index;
+    void *rgb_location = PALETTE(geo_dash_dev.virtbase);
     iowrite32(*rgb, rgb_location);
 }
 
@@ -84,6 +84,27 @@ static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
     iowrite8(*value, TILESET(geo_dash_dev.virtbase) + tile_no * 32 * 32 + pixel_no);
     
 }
+
+static uint8_t read_tile(int row, int col)
+{
+      void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
+      return ioread8(tilemap_location);
+}
+
+static uint32_t read_palette(int color_index)
+{
+      void *rgb_location = PALETTE(geo_dash_dev.virtbase) + 4 * color_index;
+      return ioread32(rgb_location);
+}
+
+static uint8_t read_tileset(int tile_no, int pixel_no)
+{
+      void *pixel_location = TILESET(geo_dash_dev.virtbase) + tile_no * 32 * 32 + pixel_no;
+      return ioread8(pixel_location);
+}
+
+
+
 static void write_player_y_position(unsigned short *value) {
     iowrite16(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
 }
@@ -119,10 +140,26 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
         case WRITE_TILE:
             write_tile(&vla.tile_value, vla.tilemap_row, vla.tilemap_col);
             break;
+        
+        case READ_TILE:
+        {
+            uint8_t tile_value = read_tile(vla.tilemap_row, vla.tilemap_col);
+            vla.tile_value = tile_value;
+            if (copy_to_user((geo_dash_arg_t *) arg, &vla, sizeof(vla)))
+                  return -EFAULT;
+        }
         case WRITE_PALETTE:
             pr_info("writing to palette\n");            
             write_palette(&vla.rgb, vla.color_index);
             break;
+
+        case READ_PALETTE:
+        {
+            uint32_t rgb = read_palette(vla.color_index);
+            vla.rgb = rgb;
+            if (copy_to_user((geo_dash_arg_t *) arg, &vla, sizeof(vla)))
+                return -EFAULT;
+        }
         case WRITE_TILESET: ;
 //            pr_info("writing to tile set\n");
             /* this should write 32x32 bytes to the location requested*/
@@ -134,7 +171,19 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
                 }
             }
             break;
+        case READ_TILESET:
+            {
+              int i, j;
 
+              for (i = 0; i < 32; i++) {
+                for (j = 0; j < 32; j++) {
+                  vla.tileset[i][j] = read_tileset(vla.tile_no, 32*i+j);
+                } 
+              }
+              if (copy_to_user((geo_dash_arg_t *) arg, &vla, sizeof(vla)))
+                return -EFAULT;
+          }
+          break;
         case WRITE_X_SHIFT:
             write_x_shift(&vla.x_shift);
             break;

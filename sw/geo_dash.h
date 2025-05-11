@@ -67,4 +67,8 @@ typedef struct {
 #define WRITE_TILE             _IOW(GEO_DASH_MAGIC, 9, geo_dash_arg_t *)
 #define WRITE_PALETTE          _IOW(GEO_DASH_MAGIC, 10, geo_dash_arg_t *)
 #define WRITE_TILESET          _IOW(GEO_DASH_MAGIC, 11, geo_dash_arg_t *)
+
+#define READ_TILE              _IOWR(GEO_DASH_MAGIC, 12, geo_dash_arg_t *)
+#define READ_PALETTE           _IOWR(GEO_DASH_MAGIC, 13, geo_dash_arg_t *)
+#define READ_TILESET           _IOWR(GEO_DASH_MAGIC, 14, geo_dash_arg_t *)
 #endif

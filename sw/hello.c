@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <time.h>
+#include <string.h>
 #include "geo_dash.h"
 
 /**
@@ -14,6 +15,8 @@
  * @param tileset The 32x32 tileset array to populate
  * @return 0 on success, negative value on error
  */
+
+int ret;
 int read_tileset_from_file(const char *filename, uint8_t tileset[32][32]) {
     FILE *file = fopen(filename, "rb");
     if (file == NULL) {
@@ -98,18 +101,29 @@ int main(int argc, char *argv[]) {
     arg.tile_value = 0;
 
     for (int i = 0; i < 10; i++) {
-        arg.tile_col = i;
-        printf("writing tile id %d to tile map.\n", arg.tile_col)
+        arg.tilemap_col = i;
+        printf("writing tile id %d to tile map.\n", arg.tilemap_col);
         if (ioctl(fd, WRITE_TILE, &arg) < 0) {
             perror("Error writing tile");
             close(fd);
             return -1;
         }
     }
+
+    memset(&arg, 0, sizeof(geo_dash_arg_t));
+    arg.tilemap_row = 0;
+    arg.tilemap_col = 0;
+    ret = ioctl(fd, READ_TILE, &arg);
+    if (ret < 0) {
+        perror("READ_TILE failed");
+    }
+
+    printf("the tile value at 0,0 is: %d\n", arg.tile_value);
+
    
     
     // Set palette
-    arg.rgb = 0xff000000; // Red color
+    arg.rgb = 0x010000ff; // Red color
     for (int i = 0; i < 8; i++) {
         arg.color_index = i;
         printf("calling palette ioctl\n");
