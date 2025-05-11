@@ -43,7 +43,7 @@ module vga_tiles
   (input logic 	      clk, reset,                    // Avalon MM Agent port
    input logic 	      chipselect, write,             // read == chipselect & !write
    input logic [14:0] address,                       // 32K window
-   input logic [7:0]  writedata,                     // 8-bit interface
+   input logic [15:0]  writedata,                     // 8-bit interface
    output logic [7:0] readdata,
 
    input logic        vga_clk_in, VGA_RESET,         // VGA signals
@@ -56,69 +56,116 @@ module vga_tiles
    logic [3:0] 	      ts_dout;                       // Data from tileset
    logic [23:0]       creg, palette_dout;            // Data to/from palette
    
-   // New scroll offset registers
-   logic [9:0]        scroll_offset;                 // 10-bit scroll offset value
-   logic              scroll_low_we, scroll_high_we; // Write enables for scroll offset
+	logic [10:0] hcount;
+	logic [9:0]  vcount;
+
+	// New scroll offset registers
+	logic [9:0]        scroll_offset;                 // 10-bit scroll offset value
+	logic              scroll_low_we, scroll_high_we; // Write enables for scroll offset
+   
+	// Sprite y position register
+	logic [8:0] y_pos;
+
+	// Colors
+	logic [7:0] tile_R, tile_G, tile_B;
+	logic [7:0] final_R, final_G, final_B;
+
+   	assign VGA_R = final_R;
+	assign VGA_G = final_G;
+	assign VGA_B = final_B;
+
+	vga_counters counters (
+		.clk50(vga_clk_in),
+		.reset(VGA_RESET),
+		.hcount(hcount),
+		.vcount(vcount),
+		.VGA_CLK(VGA_CLK),
+		.VGA_HS(VGA_HS),
+		.VGA_VS(VGA_VS),
+		.VGA_BLANK_n(VGA_BLANK_n),
+		.VGA_SYNC_n()  // Optional, unused
+	);
 
    tiles tiles(.mem_clk        ( clk           ),
-	       .tm_address     ( address[13:0] ), // Increased from 12:0 to 13:0 for double width
-	       .tm_din         ( writedata      ),
-	       .ts_address     ( address[13:0] ),
-	       .ts_din         ( writedata[3:0] ),
-	       .palette_address( address[5:2]  ),
-	       .palette_din    ( creg           ),
-	       .scroll_offset  ( scroll_offset  ), // Pass the scroll offset to tiles module
-	       .*);
+		.tm_address     ( address[13:0] ), // Increased from 12:0 to 13:0 for double width
+		.tm_din         ( writedata[7:0] ),
+		.ts_address     ( address[13:0] ),
+		.ts_din         ( writedata[3:0] ),
+		.palette_address( address[5:2]  ),
+		.palette_din    ( creg           ),
+		.scroll_offset  ( scroll_offset  ), // Pass the scroll offset to tiles module
+		.VGA_R(tile_R),
+		.VGA_G(tile_G),
+		.VGA_B(tile_B)
+	);
    assign VGA_CLK = vga_clk_in;
 
    always_comb begin                                   // Address Decoder
       {tm_we, ts_we, palette_we, creg_write, scroll_low_we, scroll_high_we, readdata } = { 8'b 0, 8'h xx };
       if (chipselect)
-	if (address[14] == 1'b 1) begin                // Tileset 1--------------
-	   ts_we    = write;                           //  Write to tileset mem
-	   readdata = { 4'h 0, ts_dout };              //  Read lower 4 bits; pad upper
-	end else if (address[13:12] == 2'b 00) begin   // Tilemap 00-------------
-	   tm_we    = write;                           //  Write to tilemap mem
-	   readdata = tm_dout;                         //  Read 8 bits
-	end else if (address[13:12] == 2'b 01 && 
-	            address[11:6] == 6'b000000) begin  // Palette 010000000------
-	   case (address[1:0])
-	     2'h 0 : begin readdata = palette_dout[7:0];   // Read red byte
-           		   creg_write[0] = write;          // creg <- red
-          	     end
-	     2'h 1 : begin readdata = palette_dout[15:8];  // Read green byte
-                           creg_write[1] = write;          // creg <- green
-                     end
-             2'h 2 : begin readdata = palette_dout[23:16]; // Read blue byte
-                           creg_write[2] = write;          // creg <- blue
-                     end
-	     2'h 3 : begin readdata = 8'h 00;              // Always reads as 00
-                           palette_we = write;             // mem <- creg
-                     end
-	   endcase
-	end else if (address[13:12] == 2'b01 && 
-	           address[11:1] == 11'b10000000000) begin // Scroll register 0110000000000-
-	   case (address[0])
-	      1'b0 : begin readdata = scroll_offset[7:0];  // Low byte
-	                   scroll_low_we = write;          // Low byte write
-	             end
-	      1'b1 : begin readdata = {6'b0, scroll_offset[9:8]}; // High byte (only need 2 bits)
-	                   scroll_high_we = write;         // High byte write
-	             end
-	   endcase
-	end
+		if (address[14] == 1'b 1) begin                // Tileset 1--------------
+			ts_we    = write;                           //  Write to tileset mem
+			readdata = { 4'h 0, ts_dout };              //  Read lower 4 bits; pad upper
+		end else if (address[13:12] == 2'b 00) begin   // Tilemap 00-------------
+			tm_we    = write;                           //  Write to tilemap mem
+			readdata = tm_dout;                         //  Read 8 bits
+		end else if (address[13:12] == 2'b 01 && 
+					address[11:6] == 6'b000000) begin  // Palette 010000000------
+			case (address[1:0])
+				2'h 0 : begin readdata = palette_dout[7:0];   // Read red byte
+						creg_write[0] = write;          // creg <- red
+						end
+				2'h 1 : begin readdata = palette_dout[15:8];  // Read green byte
+								creg_write[1] = write;          // creg <- green
+							end
+					2'h 2 : begin readdata = palette_dout[23:16]; // Read blue byte
+								creg_write[2] = write;          // creg <- blue
+							end
+				2'h 3 : begin readdata = 8'h 00;              // Always reads as 00
+								palette_we = write;             // mem <- creg
+							end
+			endcase
+		end else if (address[13:12] == 2'b01 && 
+				address[11:1] == 11'b10000000000) begin // Scroll register 0110000000000-
+			case (address[0])
+				1'b0 : begin readdata = scroll_offset[7:0];  // Low byte
+							scroll_low_we = write;          // Low byte write
+						end
+				1'b1 : begin readdata = {6'b0, scroll_offset[9:8]}; // High byte (only need 2 bits)
+							scroll_high_we = write;         // High byte write
+						end
+			endcase
+		end
    end
 
-   always_ff @(posedge clk or posedge reset)
-     if (reset) creg <= 24'b 0; else begin      
-	if (creg_write[0]) creg[7:0]   <= writedata;    // Write byte (color)
-	if (creg_write[1]) creg[15:8]  <= writedata;    // to creg according to
-	if (creg_write[2]) creg[23:16] <= writedata;    // creg_write bits
-     end
+   	always_ff @(posedge clk or posedge reset)
+		if (reset) y_pos <= 9'd0;
+		else if (chipselect && write && address == 15'h3002)
+        	y_pos <= writedata[8:0];
+
 
    always_ff @(posedge clk or posedge reset)
-     if (reset) scroll_offset <= 10'b0; else begin
-        if (scroll_low_we) scroll_offset[7:0] <= writedata;      // Low byte
-        if (scroll_high_we) scroll_offset[9:8] <= writedata[1:0]; // High byte (only 2 bits)
-     end
+    	if (reset) creg <= 24'b 0; else begin      
+			if (creg_write[0]) creg[7:0]   <= writedata[7:0];    // Write byte (color)
+			if (creg_write[1]) creg[15:8]  <= writedata[7:0];    // to creg according to
+			if (creg_write[2]) creg[23:16] <= writedata[7:0];    // creg_write bits
+		end
+
+   	always_ff @(posedge clk or posedge reset)
+    	if (reset) scroll_offset <= 10'b0; else begin
+			if (scroll_low_we) scroll_offset[7:0] <= writedata[7:0];      // Low byte
+			if (scroll_high_we) scroll_offset[9:8] <= writedata[9:8]; // High byte (only 2 bits)
+     	end
+	
+	always_comb begin
+		if (VGA_BLANK_n) begin
+			if ((hcount >= 320) && (hcount < 336) &&  // sprite width = 16 pixels
+				(vcount >= y_pos) && (vcount < y_pos + 16))
+				{final_R, final_G, final_B} = 24'hFFFFFF;  // white sprite
+			else
+				{final_R, final_G, final_B} = {tile_R, tile_G, tile_B}; // tiles
+		end else begin
+			{final_R, final_G, final_B} = 24'h000000;
+		end
+	end
 endmodule
