@@ -110,7 +110,7 @@ int main(int argc, char *argv[]) {
             return -1;
         }
     }
-    memset(&arg, 0, sizeof(geo_dash_arg_t));
+    //memset(&arg, 0, sizeof(geo_dash_arg_t));
     arg.tilemap_row = 0;
     arg.tilemap_col = 0;
     ret = ioctl(fd, READ_TILE, &arg);
@@ -121,21 +121,26 @@ int main(int argc, char *argv[]) {
     printf("the tile value at 0,0 is: %d\n", arg.tile_value);
 
     // Set palette
-    arg.rgb = 0xff000001; // Red color
+    arg.rgb = 0x00ff0000; // Red color
     arg.color_index = 0;
     if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
         perror("Error writing palette");
         close(fd);
         return -1;
     }
-    arg.rgb = 0x00ff0001; // Red color
+    arg.rgb = 0x0000ff00; // Red color
     arg.color_index = 6;
     if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
         perror("Error writing palette");
         close(fd);
         return -1;
     }
+    arg.rgb = 0x000000ff; // blue color
+    arg.color_index = 7;
+    if (ioctl(fd, WRITE_PALETTE, &arg) < 0) {
+        perror("Error writing palette");
     // Write the tileset to the device
+    }
     arg.tile_no = 0;
     if (ioctl(fd, WRITE_TILESET, &arg) < 0) {
         perror("Error writing tileset");
