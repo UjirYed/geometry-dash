@@ -44,7 +44,7 @@ module vga_tiles
    input logic 	      chipselect, write,             // read == chipselect & !write
    input logic [14:0] address,                       // 32K window
    input logic [15:0]  writedata,                     // 8-bit interface
-   output logic [7:0] readdata,
+   output logic [15:0] readdata,
 
    input logic        vga_clk_in, VGA_RESET,         // VGA signals
    output logic [7:0] VGA_R, VGA_G, VGA_B,           
