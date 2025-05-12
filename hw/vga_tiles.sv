@@ -55,9 +55,6 @@ module vga_tiles
    logic [7:0] 	      tm_dout;                       // Data from tilemap
    logic [3:0] 	      ts_dout;                       // Data from tileset
    logic [23:0]       creg, palette_dout;            // Data to/from palette
-   
-	logic [10:0] hcount;
-	logic [9:0]  vcount;
 
 	// New scroll offset registers
 	logic [9:0]        scroll_offset;                 // 10-bit scroll offset value
@@ -70,21 +67,12 @@ module vga_tiles
 	logic [7:0] tile_R, tile_G, tile_B;
 	logic [7:0] final_R, final_G, final_B;
 
+	logic [10:0] hcount;
+	logic [9:0]  vcount;
+
    	assign VGA_R = final_R;
 	assign VGA_G = final_G;
 	assign VGA_B = final_B;
-
-	vga_counters counters (
-		.clk50(vga_clk_in),
-		.reset(VGA_RESET),
-		.hcount(hcount),
-		.vcount(vcount),
-		.VGA_CLK(VGA_CLK),
-		.VGA_HS(VGA_HS),
-		.VGA_VS(VGA_VS),
-		.VGA_BLANK_n(VGA_BLANK_n),
-		.VGA_SYNC_n()  // Optional, unused
-	);
 
    tiles tiles(.mem_clk        ( clk           ),
 		.tm_address     ( address[13:0] ), // Increased from 12:0 to 13:0 for double width
@@ -97,6 +85,8 @@ module vga_tiles
 		.VGA_R(tile_R),
 		.VGA_G(tile_G),
 		.VGA_B(tile_B)
+		.hcount(hcount),
+    	.vcount(vcount),
 	);
    assign VGA_CLK = vga_clk_in;
 
