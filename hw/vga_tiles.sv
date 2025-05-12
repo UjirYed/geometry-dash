@@ -86,7 +86,7 @@ module vga_tiles
 		.VGA_G(tile_G),
 		.VGA_B(tile_B)
 		.hcount(hcount),
-    	.vcount(vcount),
+    	.vcount(vcount)
 	);
    assign VGA_CLK = vga_clk_in;
 
