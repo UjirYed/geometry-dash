@@ -18,7 +18,7 @@ module tiles
    input logic [3:0]   palette_address, // Palette memory port
    input logic 	       palette_we,
    input logic [23:0]  palette_din,
-   output logic [23:0] palette_dout
+   output logic [23:0] palette_dout,
    output logic [9:0] 	       hcount,
    output logic [8:0] 	       vcount
    );
