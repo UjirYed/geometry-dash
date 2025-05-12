@@ -41,8 +41,8 @@ module vga_tiles
   (input logic 	      clk, reset,                    // Avalon MM Agent port
    input logic 	      chipselect, write,             // read == chipselect & !write
    input logic [14:0] address,                       // 32K window
-   input logic [7:0]  writedata,                     // 8-bit interface
-   output logic [7:0] readdata,
+   input logic [15:0]  writedata,                     // 8-bit interface
+   output logic [15:0] readdata,
 
    input logic        vga_clk_in, VGA_RESET,         // VGA signals
    output logic [7:0] VGA_R, VGA_G, VGA_B,           
@@ -54,10 +54,34 @@ module vga_tiles
    logic [3:0] 	      ts_dout;                       // Data from tileset
    logic [23:0]       creg, palette_dout;            // Data to/from palette
 
+
+   // Sprite y position register
+	logic [8:0] y_pos;
+
+	// Colors
+	logic [7:0] tile_R, tile_G, tile_B;
+	logic [7:0] final_R, final_G, final_B;
+
+	logic [9:0] hcount;
+	logic [8:0]  vcount;
+
+   	assign VGA_R = final_R;
+	assign VGA_G = final_G;
+	assign VGA_B = final_B;
+
    tiles tiles(.mem_clk        ( clk           ),
-	       .tm_address     ( address[12:0] ), .tm_din     ( writedata      ),
-	       .ts_address     ( address[13:0] ), .ts_din     ( writedata[3:0] ),
-	       .palette_address( address[5:2]  ), .palette_din( creg           ), .*);
+	       .tm_address     ( address[12:0] ),
+		   .tm_din     ( writedata[7:0]      ),
+	       .ts_address     ( address[13:0] ),
+		   .ts_din     ( writedata[3:0] ),
+	       .palette_address( address[5:2]  ),
+		   .palette_din( creg           ), 
+		   .hcount(hcount),
+    	   .vcount(vcount),
+		   .VGA_R(tile_R),
+		   .VGA_G(tile_G),
+		   .VGA_B(tile_B),
+		   .*);
    assign VGA_CLK = vga_clk_in;
 
    always_comb begin                                   // Address Decoder
@@ -87,9 +111,27 @@ module vga_tiles
    end
 
    always_ff @(posedge clk or posedge reset)
+		if (reset) y_pos <= 9'd0;
+		else if (chipselect && write && address == 15'h3002)
+        	y_pos <= writedata[8:0];
+
+   always_ff @(posedge clk or posedge reset)
      if (reset) creg <= 24'b 0; else begin      
-	if (creg_write[0]) creg[7:0]   <= writedata;    // Write byte (color)
-	if (creg_write[1]) creg[15:8]  <= writedata;    // to creg according to
-	if (creg_write[2]) creg[23:16] <= writedata;    // creg_write bits
+	if (creg_write[0]) creg[7:0]   <= writedata[7:0];    // Write byte (color)
+	if (creg_write[1]) creg[15:8]  <= writedata[7:0];    // to creg according to
+	if (creg_write[2]) creg[23:16] <= writedata[7:0];    // creg_write bits
      end
+
+
+	always_comb begin
+		if (VGA_BLANK_n) begin
+			if ((hcount >= 320) && (hcount < 336) &&  // sprite width = 16 pixels
+				(vcount >= y_pos) && (vcount < y_pos + 16))
+				{final_R, final_G, final_B} = 24'hFFFFFF;  // white sprite
+			else
+				{final_R, final_G, final_B} = {tile_R, tile_G, tile_B}; // tiles
+		end else begin
+			{final_R, final_G, final_B} = 24'h000000;
+		end
+	end
 endmodule

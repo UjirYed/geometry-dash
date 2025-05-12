@@ -20,8 +20,8 @@ module tiles
    input logic [23:0]  palette_din,
    output logic [23:0] palette_dout);
    
-   logic [9:0] 	       hcount;          // From counters
-   logic [8:0] 	       vcount;
+   output logic [9:0] 	       hcount;          // From counters
+   output logic [8:0] 	       vcount;
 
    logic [4:0] 	       hcount1;         // Pipeline registers (5 bits for 32 pixels)
    logic 	       VGA_HS0, VGA_HS1, VGA_HS2;
