@@ -42,6 +42,14 @@ typedef struct {
     uint8_t  flags;            // Game flags
     uint8_t  output_flags;     // Output status flags
     uint32_t audio;            // Audio sample
+    uint16_t scroll_offset;    // Tile scrolling offset (new field)
+    uint8_t  tile_value;
+    int tilemap_row;
+    int tilemap_col;
+    uint8_t tileset[32][32];
+    uint32_t rgb;
+    int color_index;
+    int tile_no;
 } geo_dash_arg_t;
 
 // IOCTL commands
@@ -55,7 +63,12 @@ typedef struct {
 #define WRITE_MAP_BLOCK        _IOW(GEO_DASH_MAGIC, 5, geo_dash_arg_t *)
 #define WRITE_FLAGS            _IOW(GEO_DASH_MAGIC, 6, geo_dash_arg_t *)
 #define WRITE_OUTPUT_FLAGS     _IOW(GEO_DASH_MAGIC, 7, geo_dash_arg_t *)
+#define WRITE_SCROLL_OFFSET    _IOW(GEO_DASH_MAGIC, 8, geo_dash_arg_t *)
+#define WRITE_TILE             _IOW(GEO_DASH_MAGIC, 9, geo_dash_arg_t *)
+#define WRITE_PALETTE          _IOW(GEO_DASH_MAGIC, 10, geo_dash_arg_t *)
+#define WRITE_TILESET          _IOW(GEO_DASH_MAGIC, 11, geo_dash_arg_t *)
 
-
-
+#define READ_TILE              _IOWR(GEO_DASH_MAGIC, 12, geo_dash_arg_t *)
+#define READ_PALETTE           _IOWR(GEO_DASH_MAGIC, 13, geo_dash_arg_t *)
+#define READ_TILESET           _IOWR(GEO_DASH_MAGIC, 14, geo_dash_arg_t *)
 #endif
