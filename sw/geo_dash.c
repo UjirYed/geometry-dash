@@ -66,7 +66,7 @@ struct geo_dash_dev {
 static void write_tile(uint8_t *value, int row, int col)
 {
     pr_info("writing %d to tile map at row %d, col %d", *value, row, col);
-    void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
+    void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 32 + col;
     iowrite8(*value, tilemap_location);
 }
 
@@ -95,7 +95,7 @@ static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
 
 static uint8_t read_tile(int row, int col)
 {
-      uintptr_t tilemap_location = uintptr_t TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
+      uintptr_t tilemap_location = (uintptr_t) TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
       return ioread8(tilemap_location);
 }
 

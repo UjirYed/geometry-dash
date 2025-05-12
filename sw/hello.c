@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
     // Set tile
     /* Populate the tile map. */
     arg.tilemap_col = 0;
-    arg.tilemap_row = 0;
+    arg.tilemap_row = 1;
 
     for (int i = 0; i < 10; i++) {
         arg.tilemap_col = i;
