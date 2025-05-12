@@ -67,8 +67,8 @@ module vga_tiles
 	logic [7:0] tile_R, tile_G, tile_B;
 	logic [7:0] final_R, final_G, final_B;
 
-	logic [10:0] hcount;
-	logic [9:0]  vcount;
+	logic [9:0] hcount;
+	logic [8:0]  vcount;
 
    	assign VGA_R = final_R;
 	assign VGA_G = final_G;

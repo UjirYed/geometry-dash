@@ -19,8 +19,8 @@ module tiles
    input logic 	       palette_we,
    input logic [23:0]  palette_din,
    output logic [23:0] palette_dout,
-   output logic [10:0] hcount,
-   output logic [9:0]  vcount,
+   output logic [9:0] hcount,
+   output logic [8:0]  vcount,
 
    input logic [9:0]   scroll_offset);  // For pixel-by-pixel scrolling (0-1023)
 
