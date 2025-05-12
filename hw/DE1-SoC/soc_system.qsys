@@ -46,6 +46,14 @@
          type = "String";
       }
    }
+   element soc_system
+   {
+      datum _originalDeviceFamily
+      {
+         value = "Cyclone V";
+         type = "String";
+      }
+   }
    element vga_clk_pll
    {
       datum _sortIndex
@@ -55,7 +63,7 @@
       }
       datum sopceditor_expanded
       {
-         value = "0";
+         value = "1";
          type = "boolean";
       }
    }
@@ -68,7 +76,7 @@
       }
       datum sopceditor_expanded
       {
-         value = "0";
+         value = "1";
          type = "boolean";
       }
    }
@@ -898,6 +906,11 @@
    start="vga_clk_pll.outclk0"
    end="vga_tiles.vga_clock" />
  <connection
+   kind="clock"
+   version="21.1"
+   start="vga_clk_pll.outclk0"
+   end="player_sprite_0.vga_clock" />
+ <connection
    kind="reset"
    version="21.1"
    start="clk_0.clk_reset"
@@ -917,6 +930,11 @@
    version="21.1"
    start="clk_0.clk_reset"
    end="vga_tiles.vga_reset" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="clk_0.clk_reset"
+   end="player_sprite_0.vga_reset" />
  <interconnectRequirement for="$system" name="qsys_mm.clockCrossingAdapter" value="HANDSHAKE" />
  <interconnectRequirement for="$system" name="qsys_mm.enableEccProtection" value="FALSE" />
  <interconnectRequirement for="$system" name="qsys_mm.insertDefaultSlave" value="FALSE" />
