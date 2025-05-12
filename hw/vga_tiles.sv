@@ -84,7 +84,7 @@ module vga_tiles
 		.scroll_offset  ( scroll_offset  ), // Pass the scroll offset to tiles module
 		.VGA_R(tile_R),
 		.VGA_G(tile_G),
-		.VGA_B(tile_B)
+		.VGA_B(tile_B),
 		.hcount(hcount),
     	.vcount(vcount)
 	);
