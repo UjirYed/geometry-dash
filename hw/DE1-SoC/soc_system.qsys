@@ -24,6 +24,27 @@
          value = "1";
          type = "int";
       }
+      datum sopceditor_expanded
+      {
+         value = "1";
+         type = "boolean";
+      }
+   }
+   element player_sprite_0
+   {
+      datum _sortIndex
+      {
+         value = "4";
+         type = "int";
+      }
+   }
+   element player_sprite_0.avalon_slave_0
+   {
+      datum baseAddress
+      {
+         value = "0";
+         type = "String";
+      }
    }
    element vga_clk_pll
    {
@@ -32,6 +53,11 @@
          value = "2";
          type = "int";
       }
+      datum sopceditor_expanded
+      {
+         value = "0";
+         type = "boolean";
+      }
    }
    element vga_tiles
    {
@@ -39,6 +65,19 @@
       {
          value = "3";
          type = "int";
+      }
+      datum sopceditor_expanded
+      {
+         value = "0";
+         type = "boolean";
+      }
+   }
+   element vga_tiles.avalon
+   {
+      datum baseAddress
+      {
+         value = "65536";
+         type = "String";
       }
    }
 }
@@ -67,6 +106,7 @@
  <interface name="hps_ddr3" internal="hps_0.memory" type="conduit" dir="end" />
  <interface name="reset" internal="clk_0.clk_in_reset" type="reset" dir="end" />
  <interface name="vga" internal="vga_tiles.VGA" type="conduit" dir="end" />
+ <interface name="vga_1" internal="player_sprite_0.vga" type="conduit" dir="end" />
  <module name="clk_0" kind="clock_source" version="21.1" enabled="1">
   <parameter name="clockFrequency" value="50000000" />
   <parameter name="clockFrequencyKnown" value="true" />
@@ -603,6 +643,7 @@
   <parameter name="usb_mp_clk_div" value="0" />
   <parameter name="use_default_mpu_clk" value="true" />
  </module>
+ <module name="player_sprite_0" kind="player_sprite" version="1.0" enabled="1" />
  <module name="vga_clk_pll" kind="altera_pll" version="21.1" enabled="1">
   <parameter name="debug_print_output" value="false" />
   <parameter name="debug_use_rbc_taf_method" value="false" />
@@ -813,10 +854,24 @@
    start="hps_0.h2f_lw_axi_master"
    end="vga_tiles.avalon">
   <parameter name="arbitrationPriority" value="1" />
+  <parameter name="baseAddress" value="0x00010000" />
+  <parameter name="defaultConnection" value="false" />
+ </connection>
+ <connection
+   kind="avalon"
+   version="21.1"
+   start="hps_0.h2f_lw_axi_master"
+   end="player_sprite_0.avalon_slave_0">
+  <parameter name="arbitrationPriority" value="1" />
   <parameter name="baseAddress" value="0x0000" />
   <parameter name="defaultConnection" value="false" />
  </connection>
  <connection kind="clock" version="21.1" start="clk_0.clk" end="vga_tiles.clock" />
+ <connection
+   kind="clock"
+   version="21.1"
+   start="clk_0.clk"
+   end="player_sprite_0.clock" />
  <connection
    kind="clock"
    version="21.1"
@@ -852,6 +907,11 @@
    version="21.1"
    start="clk_0.clk_reset"
    end="vga_tiles.reset" />
+ <connection
+   kind="reset"
+   version="21.1"
+   start="clk_0.clk_reset"
+   end="player_sprite_0.reset" />
  <connection
    kind="reset"
    version="21.1"
