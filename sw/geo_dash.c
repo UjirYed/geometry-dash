@@ -95,7 +95,7 @@ static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
 
 static uint8_t read_tile(int row, int col)
 {
-      uintptr_t tilemap_location = uintptr_t TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
+      uintptr_t tilemap_location = (uintptr_t) TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
       return ioread8(tilemap_location);
 }
 
