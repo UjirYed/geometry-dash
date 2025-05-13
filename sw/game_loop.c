@@ -215,13 +215,7 @@ void initialize_palette(int fd) {
  */
 int load_tileset(int fd, const char *filename) {
     geo_dash_arg_t arg;
-    
-    // Initialize tileset with zeros
-    for (int row = 0; row < 32; row++) {
-        for (int col = 0; col < 32; col++) {
-            arg.tileset[row][col] = 0;
-        }
-    }
+    int tile_count = 0;
     
     // Read tileset from file
     FILE *file = fopen(filename, "rb");
@@ -230,54 +224,89 @@ int load_tileset(int fd, const char *filename) {
         return -1;
     }
     
-    // Read the file byte by byte and populate the tileset
-    for (int row = 0; row < 32; row++) {
-        for (int col = 0; col < 32; col++) {
-            uint8_t byte;
-            if (fread(&byte, 1, 1, file) != 1) {
-                // If we reach end of file before filling the array,
-                // fill remaining with zeros
-                if (feof(file)) {
-                    arg.tileset[row][col] = 0;
-                    continue;
-                } else {
-                    perror("Error reading from file");
-                    fclose(file);
-                    return -2;
-                }
+    // Continue reading tiles until we reach EOF
+    while (!feof(file)) {
+        // Initialize the current tile with zeros
+        for (int row = 0; row < 32; row++) {
+            for (int col = 0; col < 32; col++) {
+                arg.tileset[row][col] = 0;
             }
-            arg.tileset[row][col] = byte;
         }
+        
+        // Read a 32x32 tile from the file
+        bool read_data = false;
+        for (int row = 0; row < 32; row++) {
+            for (int col = 0; col < 32; col++) {
+                uint8_t byte;
+                if (fread(&byte, 1, 1, file) != 1) {
+                    if (feof(file)) {
+                        // End of file reached
+                        goto end_of_file;
+                    } else {
+                        perror("Error reading from file");
+                        fclose(file);
+                        return -2;
+                    }
+                }
+                arg.tileset[row][col] = byte;
+                read_data = true;
+            }
+        }
+        
+        // Write this tile to the device
+        arg.tile_no = tile_count;
+        if (ioctl(fd, WRITE_TILESET, &arg) < 0) {
+            perror("Error writing tileset");
+            fclose(file);
+            return -3;
+        }
+        
+        tile_count++;
     }
     
+end_of_file:
     fclose(file);
     
-    // Add a simple player sprite (tile index 8)
-    // Create a small player sprite - a colored square with eyes
-    for (int row = 0; row < 8; row++) {
-        for (int col = 0; col < 8; col++) {
-            if (row == 0 || row == 7 || col == 0 || col == 7) {
-                // Border
-                arg.tileset[8*8 + row][col] = 8;  // Purple outline
-            } else if ((row == 2 && (col == 2 || col == 5)) || 
-                      (row == 3 && (col == 2 || col == 5))) {
-                // Eyes
-                arg.tileset[8*8 + row][col] = 0;  // Black eyes
-            } else {
-                // Body fill
-                arg.tileset[8*8 + row][col] = 8;  // Purple fill
+    // Create a player sprite tile (if we have enough tile slots)
+    // We'll use tile index 8 for our player
+    if (tile_count <= 8) {
+        // Initialize tile with zeros
+        for (int row = 0; row < 32; row++) {
+            for (int col = 0; col < 32; col++) {
+                arg.tileset[row][col] = 0;
             }
         }
+        
+        // Create a simple player sprite - a colored square with eyes
+        for (int row = 8; row < 24; row++) {
+            for (int col = 8; col < 24; col++) {
+                if (row == 8 || row == 23 || col == 8 || col == 23) {
+                    // Border
+                    arg.tileset[row][col] = 8;  // Purple outline
+                } else if ((row == 12 && (col == 12 || col == 19)) || 
+                          (row == 13 && (col == 12 || col == 19))) {
+                    // Eyes
+                    arg.tileset[row][col] = 0;  // Black eyes
+                } else {
+                    // Body fill
+                    arg.tileset[row][col] = 8;  // Purple fill
+                }
+            }
+        }
+        
+        // Write the player tile to the device
+        arg.tile_no = PLAYER_TILE;
+        if (ioctl(fd, WRITE_TILESET, &arg) < 0) {
+            perror("Error writing player tile");
+            return -4;
+        }
+        
+        printf("Player sprite created as tile %d\n", PLAYER_TILE);
+    } else {
+        printf("Warning: Not enough tile slots for player sprite\n");
     }
     
-    // Write the tileset to the device
-    arg.tile_no = 0;
-    if (ioctl(fd, WRITE_TILESET, &arg) < 0) {
-        perror("Error writing tileset");
-        return -3;
-    }
-    
-    printf("Tileset successfully loaded and written to device\n");
+    printf("Tileset successfully loaded and written to device (%d tiles)\n", tile_count);
     return 0;
 }
 
