@@ -36,7 +36,7 @@ module tiles
    logic [3:0] 	       colorindex;
 
    // Calculate the effective horizontal counter with scrolling applied
-   logic [9:0]         effective_hcount;
+   logic [10:0]         effective_hcount;
    assign effective_hcount = hcount + scroll_offset;
    
    // Extract the tile coordinates from the screen position
@@ -44,15 +44,15 @@ module tiles
    logic [5:0]         h_tile;          // Horizontal tile position (0-63)
    
    // Map screen coordinates to tile coordinates
-   assign v_tile = vcount[8:5];         // Divide y by 32 (5 bit shift)
-   assign h_tile = {1'b0, effective_hcount[9:5]}; // Divide x by 32, zero-extend to 6 bits
+   wire [3:0] v_tile = vcount[8:5];        // Divide y by 32 (5 bit shift)
+   wire [5:0] h_tile = effective_hcount[10:5];
    
    vga_counters cntrs(.vcount( {unconnected, vcount} ), // VGA Counters
 		      .VGA_BLANK_n( VGA_BLANK_n0 ),
 		      .VGA_HS( VGA_HS0 ),
 		      .*);
 
-   twoportbram #(.DATA_BITS(8), .ADDRESS_BITS(14))  // Tile Map (14 bits = 16K entries)
+   twoportbram #(.DATA_BITS(8), .ADDRESS_BITS(10))  // Tile Map (14 bits = 16K entries)
    tilemap(.clk1  ( VGA_CLK ), .clk2 ( mem_clk ),
 	   // 4 bits for vertical (16 rows) + 6 bits for horizontal (64 cols) = 10 bits
 	   // We pad with 4 zeros in the upper bits to match the 14-bit address
