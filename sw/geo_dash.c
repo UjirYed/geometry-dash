@@ -112,7 +112,7 @@
 	   return ioread8(pixel_location);
  }
  
- static void write_player_y_position(unsigned short *value) {
+ static void write_player_y_position(uint8_t *value) {
 	 iowrite8(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
  }
  
