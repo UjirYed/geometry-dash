@@ -110,7 +110,7 @@ module vga_tiles
 	   endcase
    end
 
-   always_ff @(posedge clk or posedge reset)
+   always_ff @(posedge clk)
    begin
 		if (reset) y_pos <= 9'd40;
 		else if (write && address[14:12] == 3'b011)
