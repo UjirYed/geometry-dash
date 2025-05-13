@@ -164,7 +164,7 @@ int load_tileset(int fd, const char *filename) {
         perror("Error opening tileset file");
         return -1;
     }
-    
+    int i = 0;
     // Read the file byte by byte and populate the tileset
     for (int row = 0; row < 32; row++) {
         for (int col = 0; col < 32; col++) {
@@ -188,7 +188,7 @@ int load_tileset(int fd, const char *filename) {
     fclose(file);
     
     // Write the tileset to the device
-    arg.tile_no = 0;
+    arg.tile_no = i;
     if (ioctl(fd, WRITE_TILESET, &arg) < 0) {
         perror("Error writing tileset");
         return -3;
