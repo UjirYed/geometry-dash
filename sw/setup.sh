@@ -14,6 +14,6 @@ insmod audio_fifo.ko
 insmod geo_dash.ko
 
 echo "Building userspace program..."
-make audio
+make
 
 echo "Setup complete."
