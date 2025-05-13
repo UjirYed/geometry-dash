@@ -150,25 +150,25 @@ int main(int argc, char *argv[]) {
     
     printf("Tileset successfully loaded and written to device\n");
 
-	arg.player_y = (uint8_t) 10;
+	arg.player_y = (uint8_t) 255;
 	if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
 		perror("Error writing player Y position");
 		close(fd);
 		return -1;
 	}
-
-	// // Animate player sprite Y position
-    // for (int y = 50; y <= 100; y += 10) {
-    //     arg.player_y = y;
-    //     if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
-    //         perror("Error writing player Y position");
-    //         close(fd);
-    //         return -1;
-    //     }
-    //     printf("Player Y position set to %d\n", y);
-    //     sleep(2);
-    // }
-
+/*
+	// Animate player sprite Y position
+     for (int y = 0; y <= 400; y += 10) {
+       arg.player_y = y;
+         if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
+             perror("Error writing player Y position");
+             close(fd);
+             return -1;
+         }
+         printf("Player Y position set to %d\n", y);
+         sleep(1);
+     }
+*/
     // for (int y = 100; y >= 50; y -= 10) {
     //     arg.player_y = y;
     //     if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
