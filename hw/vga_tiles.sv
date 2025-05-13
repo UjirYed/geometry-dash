@@ -113,14 +113,16 @@ module vga_tiles
    end
 
    always_ff @(posedge clk or posedge reset)
+   begin
 		counter <= counter + 1;
 		if (reset) y_pos <= 9'd0;
 		else if (write && address == 15'h3002)
         	y_pos <= writedata;
-		else if (y_pos <= 480 and counter == 0)
+		else if (y_pos <= 480 && counter == 0)
 			y_pos <= y_pos + 1;
 		else
 			y_pos <= 9'd0;
+   end
 
    always_ff @(posedge clk or posedge reset)
      if (reset) creg <= 24'b 0; else begin      
