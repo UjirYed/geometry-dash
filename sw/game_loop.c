@@ -15,6 +15,7 @@
 
 #define SCREEN_WIDTH 20
 #define SCREEN_HEIGHT 15
+#define TILE_HEIGHT 32
 
 // Player sprite constants
 #define PLAYER_TILE 8             // Tile index for player sprite
@@ -341,17 +342,17 @@ void update_game_state(int fd) {
 
 	// Update hardware sprite position via ioctl
 	geo_dash_arg_t arg;
-	arg.player_y = (uint16_t)game.player_y;
+	arg.player_y = 255;
 	if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
 		perror("Failed to write player Y position");
 	}
     
-    // Check for ground collision
-    if (game.player_y >= GROUND_Y) {
-        game.player_y = GROUND_Y;
-        game.player_vy = 0;
-        game.is_jumping = false;
-    }
+    // // Check for ground collision
+    // if (game.player_y >= GROUND_Y) {
+    //     game.player_y = GROUND_Y;
+    //     game.player_vy = 0;
+    //     game.is_jumping = false;
+    // }
     
     // Check for obstacle collision
     if (check_collision((int)game.player_x, (int)game.player_y)) {
