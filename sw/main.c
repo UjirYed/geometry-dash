@@ -63,6 +63,8 @@ void checkCollisions(void);
 void initializeGame(void);
 void gameOver(void);
 void handleObstacleEffect(uint8_t obstacle_type);
+int fill_screen(int fd, uint8_t tile_id);
+
 
 // Example main function to show continuous scrolling
 int main() {
