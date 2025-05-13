@@ -17,11 +17,17 @@ module tiles
 
    input logic [3:0]   palette_address, // Palette memory port
    input logic 	       palette_we,
+
+   input logic [7:0]  scroll_offset,
    input logic [23:0]  palette_din,
    output logic [23:0] palette_dout,
-   output logic [9:0] 	       hcount,
+   output logic [9:0] 	       hcount, // filled in by vga counters
    output logic [8:0] 	       vcount
    );
+
+   logic [9:0] effective_hcount;
+
+   assign effective_hcount = hcount + {2'b0, scroll_offset}; // need to pad one extra
 
    logic [4:0] 	       hcount1;         // Pipeline registers (5 bits for 32 pixels)
    logic 	       VGA_HS0, VGA_HS1, VGA_HS2;
@@ -41,7 +47,7 @@ module tiles
 
    twoportbram #(.DATA_BITS(8), .ADDRESS_BITS(13))  // Tile Map
    tilemap(.clk1  ( VGA_CLK ), .clk2 ( mem_clk ),
-	   .addr1 ( { vcount[8:5], hcount[9:5] } ), // Changed from [8:3],[9:3] to [8:5],[9:5] for 32 pixel tiles
+	   .addr1 ( { vcount[8:5], effective_hcount[9:5] } ), // Changed from [8:3],[9:3] to [8:5],[9:5] for 32 pixel tiles
 	   .we1   ( 1'b0 ), .din1( 8'h X ), .dout1( tilenumber ),
 	   .addr2 ( tm_address ),
 	   .we2   ( tm_we ), .din2( tm_din ), .dout2( tm_dout ));

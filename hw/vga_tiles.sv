@@ -63,7 +63,9 @@ module vga_tiles
 	logic [7:0] final_R, final_G, final_B;
 
 	logic [9:0] hcount;
-	logic [8:0]  vcount;
+	logic [8:0]  vcount; // filled in by tiles, which is filled in by vga_counters.
+
+	logic [7:0] scroll_offset; 
 
    	assign VGA_R = final_R;
 	assign VGA_G = final_G;
@@ -81,6 +83,7 @@ module vga_tiles
 		   .VGA_R(tile_R),
 		   .VGA_G(tile_G),
 		   .VGA_B(tile_B),
+		   .scroll_offset (scroll_offset),
 		   .*);
    assign VGA_CLK = vga_clk_in;
 
@@ -112,8 +115,15 @@ module vga_tiles
 
    always_ff @(posedge clk)
    begin
-		if (write && address[14:12] == 3'b011)
-        	y_pos <= writedata + 144;
+		if (write && address == 15'h3002)
+        	y_pos <= writedata + 113;
+   end
+
+   always_ff @(posedge clk or posedge reset)
+   begin
+		if (reset) scroll_offset = 8'd0;
+		else if (write && address == 15'h3010)
+        	scroll_offset <= writedata; // sadly our scroll_offset is limited to < 255 because of our writedata witdth.
    end
 
    always_ff @(posedge clk or posedge reset)
