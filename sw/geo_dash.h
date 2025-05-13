@@ -34,7 +34,7 @@
 // Structure for communicating with the device driver
 typedef struct {
     uint16_t x_shift;          // Pixel offset for scrolling
-    uint16_t player_y;         // Player Y position
+    uint8_t player_y;         // Player Y position
     uint8_t  bg_r;             // Background color (R)
     uint8_t  bg_g;             // Background color (G)
     uint8_t  bg_b;             // Background color (B)

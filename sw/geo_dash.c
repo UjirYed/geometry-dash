@@ -113,7 +113,7 @@
  }
  
  static void write_player_y_position(unsigned short *value) {
-	 iowrite16(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
+	 iowrite8(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
  }
  
  static void write_x_shift(unsigned short *value) {
