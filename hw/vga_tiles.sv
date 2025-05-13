@@ -112,7 +112,7 @@ module vga_tiles
 
    always_ff @(posedge clk or posedge reset)
 		if (reset) y_pos <= 9'd0;
-		else if (chipselect && write && address == 15'h3002)
+		else if (write && address == 15'h3002)
         	y_pos <= writedata;
 
    always_ff @(posedge clk or posedge reset)
