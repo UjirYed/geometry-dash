@@ -149,6 +149,18 @@ int main(int argc, char *argv[]) {
     }
     
     printf("Tileset successfully loaded and written to device\n");
+    printf("Writing scroll offset\n");
+    memset(&arg, 0, sizeof(arg));
+
+    // scroll from 0 to 1279 pixels, then wrap
+    for (unsigned short offs = 0; ; offs = (offs + 4) % (40*32)) {
+        arg.scroll_offset = offs;
+        if (ioctl(fd, WRITE_SCROLL_OFFSET, &arg) < 0) {
+            perror("Error writing scroll offset");
+            break;
+        }
+        usleep(16000);   // ~60 Hz animation
+    }
     
     close(fd);
     return 0;

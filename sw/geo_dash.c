@@ -66,7 +66,7 @@ struct geo_dash_dev {
 static void write_tile(uint8_t *value, int row, int col)
 {
     pr_info("writing %d to tile map at row %d, col %d", *value, row, col);
-    void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 32 + col;
+    void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
     iowrite8(*value, tilemap_location);
 }
 
@@ -156,6 +156,7 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             vla.tile_value = tile_value;
             if (copy_to_user((geo_dash_arg_t *) arg, &vla, sizeof(vla)))
                   return -EFAULT;
+            break;
         }
         case WRITE_PALETTE:
             pr_info("writing to palette\n");            
@@ -168,6 +169,7 @@ static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
             vla.rgb = rgb;
             if (copy_to_user((geo_dash_arg_t *) arg, &vla, sizeof(vla)))
                 return -EFAULT;
+            break;
         }
         case WRITE_TILESET: ;
 //            pr_info("writing to tile set\n");

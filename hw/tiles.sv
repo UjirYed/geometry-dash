@@ -20,7 +20,7 @@ module tiles
    input logic [23:0]  palette_din,
    output logic [23:0] palette_dout,
    
-   input logic [9:0]   scroll_offset);  // For pixel-by-pixel scrolling (0-1023)
+   input logic [10:0]   scroll_offset);  // For pixel-by-pixel scrolling (0-2047)
    
    logic [9:0] 	       hcount;          // From counters
    logic [8:0] 	       vcount;
@@ -37,7 +37,7 @@ module tiles
    logic [3:0] 	       colorindex;
 
    // Calculate the effective horizontal counter with scrolling applied
-   logic [9:0]         effective_hcount;
+   logic [10:0]         effective_hcount;
    assign effective_hcount = hcount + scroll_offset;
    
    // Extract the tile coordinates from the screen position
@@ -46,7 +46,7 @@ module tiles
    
    // Map screen coordinates to tile coordinates
    assign v_tile = vcount[8:5];         // Divide y by 32 (5 bit shift)
-   assign h_tile = {1'b0, effective_hcount[9:5]}; // Divide x by 32, zero-extend to 6 bits
+   assign h_tile = effective_hcount[10:5]; // Divide x by 32, zero-extend to 6 bits
    
    vga_counters cntrs(.vcount( {unconnected, vcount} ), // VGA Counters
 		      .VGA_BLANK_n( VGA_BLANK_n0 ),
