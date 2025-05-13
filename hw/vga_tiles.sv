@@ -56,7 +56,7 @@ module vga_tiles
 
 
    // Sprite y position register
-	logic [8:0] y_pos;
+	logic [8:0] y_pos = 9'd40;
 
 	// Colors
 	logic [7:0] tile_R, tile_G, tile_B;
@@ -112,8 +112,7 @@ module vga_tiles
 
    always_ff @(posedge clk)
    begin
-		if (reset) y_pos <= 9'd40;
-		else if (write && address[14:12] == 3'b011)
+		if (write && address[14:12] == 3'b011)
         	y_pos <= writedata;
    end
 
