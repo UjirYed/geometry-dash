@@ -9,6 +9,7 @@
 #include <signal.h>
 #include <math.h>
 #include <pthread.h>
+#include <stdbool.h> 
 #include "geo_dash.h"
 #include "../controller/usbjoypad.h"
 
@@ -139,10 +140,6 @@ void update_screen(int fd) {
     geo_dash_arg_t arg;
     
     pthread_mutex_lock(&game_mutex);
-    
-    // Calculate the integer player position on screen
-    player_screen_x = (int)game.player_x;
-    player_screen_y = (int)game.player_y;
     
     // Write each visible tile to the device
     for (int row = 0; row < SCREEN_HEIGHT; row++) {
@@ -370,6 +367,8 @@ void update_game_state(int fd) {
  */
 void* game_loop(void* arg) {
     int fd = *((int*)arg);
+
+	struct timespec sleep_time;
     
     // Set up timing
     int fps = 60;  // Target frames per second
@@ -417,7 +416,6 @@ void* game_loop(void* arg) {
 
 int main(int argc, char *argv[]) {
     int fd;
-    struct timespec sleep_time;
     
     // Check for required arguments
     if (argc < 4) {
