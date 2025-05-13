@@ -113,7 +113,7 @@ module vga_tiles
    always_ff @(posedge clk)
    begin
 		if (write && address[14:12] == 3'b011)
-        	y_pos <= writedata;
+        	y_pos <= writedata + 144;
    end
 
    always_ff @(posedge clk or posedge reset)
