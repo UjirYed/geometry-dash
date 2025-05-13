@@ -41,8 +41,8 @@ module vga_tiles
   (input logic 	      clk, reset,                    // Avalon MM Agent port
    input logic 	      chipselect, write,             // read == chipselect & !write
    input logic [14:0] address,                       // 32K window
-   input logic [15:0]  writedata,                     // 8-bit interface
-   output logic [15:0] readdata,
+   input logic [7:0]  writedata,                     // 8-bit interface
+   output logic [7:0] readdata,
 
    input logic        vga_clk_in, VGA_RESET,         // VGA signals
    output logic [7:0] VGA_R, VGA_G, VGA_B,           
@@ -71,7 +71,7 @@ module vga_tiles
 
    tiles tiles(.mem_clk        ( clk           ),
 	       .tm_address     ( address[12:0] ),
-		   .tm_din     ( writedata[7:0]      ),
+		   .tm_din     ( writedata      ),
 	       .ts_address     ( address[13:0] ),
 		   .ts_din     ( writedata[3:0] ),
 	       .palette_address( address[5:2]  ),
@@ -113,13 +113,13 @@ module vga_tiles
    always_ff @(posedge clk or posedge reset)
 		if (reset) y_pos <= 9'd0;
 		else if (chipselect && write && address == 15'h3002)
-        	y_pos <= writedata[8:0];
+        	y_pos <= writedata;
 
    always_ff @(posedge clk or posedge reset)
      if (reset) creg <= 24'b 0; else begin      
-	if (creg_write[0]) creg[7:0]   <= writedata[7:0];    // Write byte (color)
-	if (creg_write[1]) creg[15:8]  <= writedata[7:0];    // to creg according to
-	if (creg_write[2]) creg[23:16] <= writedata[7:0];    // creg_write bits
+	if (creg_write[0]) creg[7:0]   <= writedata;    // Write byte (color)
+	if (creg_write[1]) creg[15:8]  <= writedata;    // to creg according to
+	if (creg_write[2]) creg[23:16] <= writedata;    // creg_write bits
      end
 
 

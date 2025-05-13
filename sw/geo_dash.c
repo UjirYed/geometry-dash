@@ -67,11 +67,8 @@
  static void write_tile(uint8_t *value, int row, int col)
  {
 	 pr_info("writing %d to tile map at row %d, col %d", *value, row, col);
-	 uintptr_t addr = (uintptr_t)TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
-	 uint16_t word_addr = addr & ~1;
-	 uint16_t current = ioread16((void __iomem *)word_addr);
-	 uint16_t newval = (addr & 1) ? (current & 0x00FF) | (*value << 8) : (current & 0xFF00) | *value;
-	 iowrite16(newval, (void __iomem *)word_addr);
+	 void *tilemap_location = TILEMAP(geo_dash_dev.virtbase) + row * 40 + col;
+	 iowrite8(*value, tilemap_location);
  }
  
  static void write_palette(uint32_t *rgb, int color_index)
@@ -80,19 +77,21 @@
 	 uint8_t r = (*rgb >> 16) & 0xFF;
 	 uint8_t g = (*rgb >> 8) & 0xFF;
 	 uint8_t b = (*rgb) & 0xFF;
-	 uintptr_t addr = (uintptr_t)PALETTE(geo_dash_dev.virtbase) + color_index * 4;
  
-	 iowrite16((g << 8) | r, (void __iomem *)addr);
-	 iowrite16((0x01 << 8) | b, (void __iomem *)(addr + 2));
+	 uintptr_t addr = (uintptr_t) PALETTE(geo_dash_dev.virtbase) + color_index * 4;
+	 
+	 iowrite8(r, addr);
+	 iowrite8(g, addr + 1);
+	 iowrite8(b, addr + 2);
+	 iowrite8(0x01, addr + 3);
  }
  
  static void write_tileset(uint8_t *value, int tile_no, int pixel_no)
  {
-	 uintptr_t addr = (uintptr_t)TILESET(geo_dash_dev.virtbase) + tile_no * 32 * 32 + pixel_no;
-	 uint16_t word_addr = addr & ~1;
-	 uint16_t current = ioread16((void __iomem *)word_addr);
-	 uint16_t newval = (addr & 1) ? (current & 0x00FF) | (*value << 8) : (current & 0xFF00) | *value;
-	 iowrite16(newval, (void __iomem *)word_addr);
+	 /*writing to the pixel in that specific tile. */
+	 //pr_info("writing to tile");
+	 iowrite8(*value, TILESET(geo_dash_dev.virtbase) + tile_no * 32 * 32 + pixel_no);
+	 
  }
  
  static uint8_t read_tile(int row, int col)
