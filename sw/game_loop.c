@@ -154,10 +154,7 @@ void update_screen(int fd) {
             // Get the tile from our level buffer
             uint8_t tile = get_level_tile(row, level_col);
             
-            // If this is the player position, draw the player instead
-            if (col == player_screen_x && row == player_screen_y && !game.is_dead) {
-                tile = PLAYER_TILE;
-            }
+            
             
             // Write the tile to the device
             arg.tilemap_row = row;
@@ -325,7 +322,7 @@ void initialize_game() {
 /**
  * Update player physics and game state
  */
-void update_game_state() {
+void update_game_state(int fd) {
     pthread_mutex_lock(&game_mutex);
     
     // Get controller state
@@ -347,6 +344,13 @@ void update_game_state() {
     
     // Update player Y position
     game.player_y += game.player_vy;
+
+	// Update hardware sprite position via ioctl
+	geo_dash_arg_t arg;
+	arg.player_y = (uint16_t)game.player_y;
+	if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
+		perror("Failed to write player Y position");
+	}
     
     // Check for ground collision
     if (game.player_y >= GROUND_Y) {
@@ -384,7 +388,7 @@ void* game_loop(void* arg) {
         // Skip processing if game is over
         if (!game.is_dead) {
             // Update game state (player physics, etc.)
-            update_game_state();
+            update_game_state(fd);
             
             // Advance level position every few frames for scrolling
             static int scroll_counter = 0;

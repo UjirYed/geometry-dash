@@ -15,7 +15,7 @@
 #define GAME_OVER 8
 
 // Game constants
-#define GROUND_Y 220          // Ground position (higher number = lower on screen)
+#define GROUND_Y 384          // Ground position (higher number = lower on screen)
 #define PLAYER_SPEED 2        // Horizontal movement speed
 #define JUMP_VELOCITY 10      // Initial jump velocity
 #define GRAVITY 1             // Gravity acceleration
