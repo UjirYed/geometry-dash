@@ -137,7 +137,6 @@ bool check_collision(int player_screen_x, int player_screen_y) {
  */
 void update_screen(int fd) {
     geo_dash_arg_t arg;
-    int player_screen_x, player_screen_y;
     
     pthread_mutex_lock(&game_mutex);
     
@@ -231,7 +230,6 @@ int load_tileset(int fd, const char *filename) {
         }
         
         // Read a 32x32 tile from the file
-        bool read_data = false;
         for (int row = 0; row < 32; row++) {
             for (int col = 0; col < 32; col++) {
                 uint8_t byte;
@@ -246,7 +244,6 @@ int load_tileset(int fd, const char *filename) {
                     }
                 }
                 arg.tileset[row][col] = byte;
-                read_data = true;
             }
         }
         
@@ -373,7 +370,6 @@ void update_game_state(int fd) {
  */
 void* game_loop(void* arg) {
     int fd = *((int*)arg);
-    struct timespec sleep_time;
     
     // Set up timing
     int fps = 60;  // Target frames per second
