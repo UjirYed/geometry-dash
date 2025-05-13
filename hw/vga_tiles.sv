@@ -65,6 +65,8 @@ module vga_tiles
 	logic [9:0] hcount;
 	logic [8:0]  vcount;
 
+	logic [22:0] counter;
+
    	assign VGA_R = final_R;
 	assign VGA_G = final_G;
 	assign VGA_B = final_B;
@@ -111,10 +113,11 @@ module vga_tiles
    end
 
    always_ff @(posedge clk or posedge reset)
+		counter <= counter + 1;
 		if (reset) y_pos <= 9'd0;
 		else if (write && address == 15'h3002)
         	y_pos <= writedata;
-		else if (y_pos <= 480)
+		else if (y_pos <= 480 and counter == 0)
 			y_pos <= y_pos + 1;
 		else
 			y_pos <= 9'd0;
