@@ -227,7 +227,6 @@ int load_tileset(int fd, const char *filename) {
         }
         
         // Read a 32x32 tile from the file
-        bool read_data = false;
         for (int row = 0; row < 32; row++) {
             for (int col = 0; col < 32; col++) {
                 uint8_t byte;
@@ -242,7 +241,6 @@ int load_tileset(int fd, const char *filename) {
                     }
                 }
                 arg.tileset[row][col] = byte;
-                read_data = true;
             }
         }
         
@@ -426,7 +424,6 @@ void* game_loop(void* arg) {
 
 int main(int argc, char *argv[]) {
     int fd;
-    struct timespec sleep_time;
     
     // Check for required arguments
     if (argc < 4) {
