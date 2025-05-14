@@ -442,6 +442,7 @@ void update_game_state(int fd) {
 		return;
     }
 
+	/*
 	// THEN: look one tile below our feet for ground (tile == 1)
     uint8_t below = get_level_tile(tile_y + 1, game.level_x + tile_x);
     if (below == 1) {
@@ -456,6 +457,7 @@ void update_game_state(int fd) {
         pthread_mutex_unlock(&game_mutex);
         return;
     }
+	*/
     
     pthread_mutex_unlock(&game_mutex);
 }
