@@ -158,7 +158,7 @@ void update_screen(int fd) {
             arg.tilemap_row = row;
             arg.tilemap_col = col;
             arg.tile_value = tile;
-            printf("row: %d, col: %d, value: %d written to map\n", arg.tilemap_row, arg.tilemap_col, arg.tile_value);
+            // printf("row: %d, col: %d, value: %d written to map\n", arg.tilemap_row, arg.tilemap_col, arg.tile_value);
             if (ioctl(fd, WRITE_TILE, &arg) < 0) {
                 perror("Error writing tile");
                 pthread_mutex_unlock(&game_mutex);
