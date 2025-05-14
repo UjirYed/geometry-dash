@@ -197,7 +197,6 @@ bool check_collision(int player_screen_x, int player_screen_y) {
     // Check the tile at the player's position
     uint8_t tile = get_level_tile(player_screen_y, level_x_pos);
 	printf("player_screen_y: %d, level_x_pos %d, tile is: %d\n", player_screen_y, level_x_pos, tile);
-	printf("Tile is: %d\n", tile);
     
     // Obstacle is tile type 3 (red)
     return (tile == 1 || tile == 2);
