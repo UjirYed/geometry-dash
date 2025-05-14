@@ -487,14 +487,14 @@ void* game_loop(void* arg) {
 
 
 		// 2) smooth pixel scroll
-        pixel_offset = (pixel_offset + 1) & 0x1F;
+        pixel_offset = (game.player_x) & 0x1F;
         geo_dash_arg_t a = { .scroll_offset = pixel_offset };
         if (ioctl(fd, WRITE_SCROLL_OFFSET, &a) < 0) {
             perror("WRITE_SCROLL_OFFSET");
         }
 
         // 3) if we just wrapped a full tile (32px), reload one new column
-        if (pixel_offset == 0) {
+        if (pixel_offset & 0x1F == 0) {
             pthread_mutex_lock(&game_mutex);
             game.level_x++;
             int dead_col  = map_origin;
