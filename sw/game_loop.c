@@ -19,8 +19,8 @@
 #define PLAYER_TILE 8             // Tile index for player sprite
 #define PLAYER_START_X 5          // Starting X position (screen coordinate)
 #define PLAYER_START_Y 11         // Starting Y position (screen coordinate)
-#define GRAVITY 10               // Gravity force
-#define JUMP_VELOCITY -30        // Initial jump velocity (negative means upward)
+#define GRAVITY 2              // Gravity force
+#define JUMP_VELOCITY -20        // Initial jump velocity (negative means upward)
 #define MAX_FALL_SPEED 5.0        // Maximum falling speed
 #define GROUND_Y 11               // Ground Y position
 #define REG_GROUND 255               // Ground Y position
@@ -320,7 +320,7 @@ void initialize_game() {
  */
 void update_game_state(int fd) {
     pthread_mutex_lock(&game_mutex);
-    
+    printf("player y position right before updating game state: %d\n", game.player_y); 
     // Get controller state
     ControllerState controller = controller_get_state();
     
@@ -337,14 +337,22 @@ void update_game_state(int fd) {
     if (game.player_vy > MAX_FALL_SPEED) {
         game.player_vy = MAX_FALL_SPEED;
     }
-    
+      
     // Update player Y position
-    game.player_y += game.player_vy;
+
+    // assume player_y and player_vy are uint32_t
+    uint32_t new_y = game.player_y + game.player_vy;
+    if (new_y > game.player_y) {
+         // wrapped around
+        game.player_y = REG_GROUND;
+    } else {
+        game.player_y = new_y;
+    }
 
 	// Update hardware sprite position via ioctl
 	geo_dash_arg_t arg;
 	arg.player_y = game.player_y;
-printf("Writing player y pos to pos %d\n", arg.player_y);
+  printf("Writing player y pos to pos %d\n", arg.player_y);
   if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
 		perror("Failed to write player Y position");
 	}
@@ -379,7 +387,7 @@ void* game_loop(void* arg) {
     // Sleep time structure for consistent frame rate
     sleep_time.tv_sec = 0;
     sleep_time.tv_nsec = frame_time_ms * 1000000; // Convert to nanoseconds
-    
+    printf("player y pos before running game loop: %d\n", game.player_y); 
     // Main game loop
     while (keep_running && game.level_x < level_width - SCREEN_WIDTH) {
         // Skip processing if game is over
@@ -466,14 +474,14 @@ int main(int argc, char *argv[]) {
     
     // Initialize the controller
     controller_init();
-    
+    printf("player y pos at beginning: %d\n", game.player_y);    
     // Initialize game state
     initialize_game();
     
     printf("Starting Geometry Dash. Press Ctrl+C to exit.\n");
     printf("Level width: %d tiles\n", level_width);
     printf("Controls: Press A button to jump\n");
-    
+    printf("player y pos after initialization: %d\n", game.player_y); 
     // Start game thread
     if (pthread_create(&game_thread, NULL, game_loop, &fd) != 0) {
         perror("Failed to create game thread");
