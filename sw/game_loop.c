@@ -318,7 +318,6 @@ void initialize_game() {
  */
 void update_game_state(int fd) {
     pthread_mutex_lock(&game_mutex);
-    printf("player y position right before updating game state: %d\n", game.player_y); 
     // Get controller state
     ControllerState controller = controller_get_state();
     
@@ -339,13 +338,13 @@ void update_game_state(int fd) {
     // Update player Y position
 
     // assume player_y and player_vy are uint32_t
-    uint32_t new_y = game.player_y + game.player_vy;
-    if (new_y > game.player_y) {
-         // wrapped around
-        game.player_y = REG_GROUND;
-    } else {
-        game.player_y = new_y;
-    }
+    game.player_y += game.player_vy;
+
+	if (game.player_y >= REG_GROUND) {
+		game.player_y = REG_GROUND;
+		game.player_vy = 0;
+		game.is_jumping = false;
+	}
 
 	// Update hardware sprite position via ioctl
 	geo_dash_arg_t arg;
