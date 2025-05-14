@@ -26,6 +26,8 @@
 #define GROUND_Y 11               // Ground Y position
 #define REG_GROUND 255               // Ground Y position
 
+#define GAMEOVER_BIN  "../hw/gd-tiles/gameover.bin"
+
 // Game state
 typedef struct {
     float player_x;               // Player X position in screen coordinates
@@ -52,6 +54,10 @@ static uint8_t  pixel_offset = 0;  // 0–31 pixel scroll inside a tile
 pthread_t game_thread;
 pthread_mutex_t game_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+static int load_gameover(void);
+static void show_gameover(int fd);
+
+
 /**
  * Signal handler for clean termination
  */
@@ -68,6 +74,42 @@ void handle_signal(int sig) {
     }
     return level_buffer[row * level_width + col];
 }
+
+// A 20×15 tile image that spells out “GAME OVER”
+static uint8_t gameover_map[SCREEN_HEIGHT][SCREEN_WIDTH];
+
+// Read the 20×15 tile indices from disk into gameover_map[][]
+static int load_gameover(void) {
+    FILE *f = fopen(GAMEOVER_BIN, "rb");
+    if (!f) { perror("Opening gameover.bin"); return -1; }
+    size_t want = SCREEN_HEIGHT * SCREEN_WIDTH;
+    size_t got  = fread(gameover_map, 1, want, f);
+    fclose(f);
+    if (got != want) {
+        fprintf(stderr, "Expected %zu bytes in %s, got %zu\n", want, GAMEOVER_BIN, got);
+        return -1;
+    }
+    return 0;
+}
+
+static void show_gameover(int fd) {
+    geo_dash_arg_t arg;
+    pthread_mutex_lock(&game_mutex);
+    for (int row = 0; row < SCREEN_HEIGHT; row++) {
+        for (int col = 0; col < SCREEN_WIDTH; col++) {
+            arg.tilemap_row = row;
+            arg.tilemap_col = col;
+            arg.tile_value  = gameover_map[row][col];
+            if (ioctl(fd, WRITE_TILE, &arg) < 0) {
+                perror("WRITE_TILE gameover");
+                pthread_mutex_unlock(&game_mutex);
+                return;
+            }
+        }
+    }
+    pthread_mutex_unlock(&game_mutex);
+}
+
 
 void initial_fill(int fd) {
     map_origin = 0;
@@ -153,9 +195,11 @@ bool check_collision(int player_screen_x, int player_screen_y) {
     
     // Check the tile at the player's position
     uint8_t tile = get_level_tile(player_screen_y, level_x_pos);
+	printf("player_screen_y: %d, level_x_pos %d, tile is: %d\n", player_screen_y, level_x_pos, tile);
+	printf("Tile is: %d\n", tile);
     
     // Obstacle is tile type 3 (red)
-    return (tile == 3);
+    return (tile == 1 || tile == 2);
 }
 
 /**
@@ -388,12 +432,16 @@ void update_game_state(int fd) {
     }
 
 	int tile_x = (int)game.player_x;  
-	int tile_y = (int)(game.player_y / TILE_HEIGHT);
+	int tile_y = (int)((game.player_y+113) / TILE_HEIGHT);
     
     // Check for obstacle collision
     if (check_collision(tile_x, tile_y)) {
+		pthread_mutex_unlock(&game_mutex);
         game.is_dead = true;
+		keep_running = 0;
         printf("\nGame Over! Collided with an obstacle.\n");
+		show_gameover(fd);
+		return;
     }
     
     pthread_mutex_unlock(&game_mutex);
@@ -524,6 +572,12 @@ int main(int argc, char *argv[]) {
         return -1;
     }
     
+	// Load game over
+	if (load_gameover() < 0) {
+		fprintf(stderr, "Failed to load %s\n", GAMEOVER_BIN);
+		return 1;
+	}
+	
     // Initialize the controller
     controller_init();
     printf("player y pos at beginning: %d\n", game.player_y);    
@@ -534,11 +588,6 @@ int main(int argc, char *argv[]) {
     printf("Level width: %d tiles\n", level_width);
     printf("Controls: Press A button to jump\n");
     printf("player y pos after initialization: %d\n", game.player_y); 
-    // Start game thread
-
-	int w = atoi(argv[3]);
-    if (w <= 0) { fprintf(stderr,"Bad level_width\n"); return 1; }
-    if (load_level(argv[2], w)    < 0) return 1;
 
     // initial game state
     game.player_x = PLAYER_START_X;
@@ -551,8 +600,7 @@ int main(int argc, char *argv[]) {
     // prime the tilemap ring
     initial_fill(fd);
 
-
-
+	// Start game thread
     if (pthread_create(&game_thread, NULL, game_loop, &fd) != 0) {
         perror("Failed to create game thread");
         cleanup_level();
