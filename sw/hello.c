@@ -157,12 +157,18 @@ int main(int argc, char *argv[]) {
 		return -1;
 	}
 
-	arg.scroll_offset = (uint8_t) 10;
-	if (ioctl(fd, WRITE_SCROLL_OFFSET, &arg) < 0) {
-		perror("Error writing scroll offset");
-		close(fd);
-		return -1;
+	for (int i = 0; i < 300; i++) {
+		arg.scroll_offset = (uint8_t) i;
+		if (ioctl(fd, WRITE_SCROLL_OFFSET, &arg) < 0) {
+			perror("Error writing scroll offset");
+			close(fd);
+			return -1;
+		}
+		usleep(50000);
 	}
+
+	
+	
 /*
 	// Animate player sprite Y position
      for (int y = 0; y <= 400; y += 10) {
