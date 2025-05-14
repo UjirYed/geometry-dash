@@ -42,7 +42,7 @@ typedef struct {
     uint8_t  flags;            // Game flags
     uint8_t  output_flags;     // Output status flags
     uint32_t audio;            // Audio sample
-    uint16_t scroll_offset;    // Tile scrolling offset (new field)
+    uint8_t scroll_offset;    // Tile scrolling offset (new field)
     uint8_t  tile_value;
     int tilemap_row;
     int tilemap_col;
