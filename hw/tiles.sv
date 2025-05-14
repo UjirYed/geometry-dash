@@ -54,7 +54,7 @@ module tiles
    
    always_ff @(posedge VGA_CLK)                     // Pipeline registers
      { hcount1, VGA_BLANK_n1, VGA_HS1 } <=
-       { hcount[4:0], VGA_BLANK_n0, VGA_HS0 };      // Changed from [2:0] to [4:0] for 32 pixel tiles
+       { effective_hcount[4:0], VGA_BLANK_n0, VGA_HS0 };      // Changed from [2:0] to [4:0] for 32 pixel tiles
       
    twoportbram #(.DATA_BITS(4), .ADDRESS_BITS(14))  // Tile Set
    tileset(.clk1  ( VGA_CLK ), .clk2 ( mem_clk ),
