@@ -49,6 +49,7 @@ volatile int keep_running = 1;
 
 static int      map_origin   = 0;  // which device column (0–31) is the leftmost tile
 static uint8_t  pixel_offset = 0;  // 0–31 pixel scroll inside a tile
+static uint32_t  total_offset = 0;
 
 // Thread for game logic
 pthread_t game_thread;
@@ -201,23 +202,35 @@ bool check_collision(int player_screen_x, int player_screen_y) {
  */
 static inline void render_frame(int fd) {
     // 1) smooth-scroll one pixel
-    pixel_offset++;
-    ioctl(fd, WRITE_SCROLL_OFFSET, &(geo_dash_arg_t){ .scroll_offset = pixel_offset });
-    printf("pixel_offset: %d\n", pixel_offset);
+    total_offset++;
+
     // 2) on wrap (every 32 px) reload one 15-tile column
+    if (total_pixel_offset >= level_width * TILE_HEIGHT) {
+        keep_running = 0;
+        return;
+    }
+
+    // 2) decompose into tile index + intra-tile offset
+    game.level_x   = total_pixel_offset >> 5;      // /32
+    pixel_offset   = total_pixel_offset & 0x1F;    // %32
+
+    ioctl(fd, WRITE_SCROLL_OFFSET, 
+        &(geo_dash_arg_t){ .scroll_offset = total_offset });
+    printf("total_offset: %d\n", total_offset);
+
+    // 4) if we crossed a tile boundary, reload one column
     if (pixel_offset == 0) {
         pthread_mutex_lock(&game_mutex);
-          game.level_x++;
-          int dead_col  = map_origin;
-          int new_col   = game.level_x + 63;
-          for (int r = 0; r < SCREEN_HEIGHT; r++) {
+        int dead_col  = map_origin;
+        int new_col   = game.level_x + 63;
+        for (int r = 0; r < SCREEN_HEIGHT; r++) {
             ioctl(fd, WRITE_TILE, &(geo_dash_arg_t){
               .tilemap_row = r,
               .tilemap_col = dead_col,
               .tile_value  = get_level_tile(r, new_col)
             });
-          }
-          map_origin = (map_origin + 1) & 63;
+        }
+        map_origin = (map_origin + 1) & 63;
         pthread_mutex_unlock(&game_mutex);
     }
 }
