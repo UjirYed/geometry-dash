@@ -408,38 +408,38 @@ void update_game_state(int fd) {
     // assume player_y and player_vy are uint32_t
     game.player_y += game.player_vy;
 
-	if (game.player_y >= REG_GROUND) {
-		game.player_y = REG_GROUND;
-		game.player_vy = 0;
-		game.is_jumping = false;
-	}
+	// 2) Figure out which tile row the *bottom* of our player sprite now occupies
+    //    We assume the sprite is TILE_HEIGHT pixels tall:
+    int bottom_y = (int)(game.player_y) + TILE_HEIGHT - 1;
+    int tile_row = (bottom_y + 113) / TILE_HEIGHT;      // +113 = your hardware offset
+    int tile_col = game.level_x + (int)game.player_x;
 
-	// Update hardware sprite position via ioctl
-	geo_dash_arg_t arg;
-	arg.player_y = (uint8_t)game.player_y;
-	// printf("Writing player y pos to pos %d\n", arg.player_y);
-	if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
-		perror("Failed to write player Y position");
-	}
-    
-    // Check for ground collision
-    if (game.player_y >= REG_GROUND) {
-        game.player_y = REG_GROUND;
+    // 3) Fetch the tile
+    uint8_t tile = get_level_tile(tile_row, tile_col);
+
+    if (tile == 3) {
+        // Lethal obstacle → dead
+        game.is_dead = true;
+        pthread_mutex_unlock(&game_mutex);
+        show_gameover(fd);
+        return;
+    }
+    else if (tile == 1) {
+        // Solid ground → snap to just above it
+        float ground_px = tile_row* TILE_HEIGHT - (TILE_HEIGHT - 1) - 113;
+        // reverse the hardware offset you added when computing tile_row:
+        game.player_y = ground_px;
         game.player_vy = 0;
         game.is_jumping = false;
-    }
 
-	int tile_x = (int)game.player_x;  
-	int tile_y = (int)((game.player_y+113) / TILE_HEIGHT);
-    
-    // Check for obstacle collision
-    if (check_collision(tile_x, tile_y)) {
-		pthread_mutex_unlock(&game_mutex);
-        game.is_dead = true;
-		keep_running = 0;
-        printf("\nGame Over! Collided with an obstacle.\n");
-		show_gameover(fd);
-		return;
+        // update the sprite position
+        geo_dash_arg_t arg = { .player_y = (uint8_t)game.player_y };
+        ioctl(fd, WRITE_PLAYER_Y_POS, &arg);
+    }
+    else {
+        // Air ⇒ just update Y
+        geo_dash_arg_t arg = { .player_y = (uint8_t)game.player_y };
+        ioctl(fd, WRITE_PLAYER_Y_POS, &arg);
     }
     
     pthread_mutex_unlock(&game_mutex);
