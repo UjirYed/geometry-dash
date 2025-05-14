@@ -141,10 +141,6 @@ void update_screen(int fd) {
     
     pthread_mutex_lock(&game_mutex);
     
-    // Calculate the integer player position on screen
-    player_screen_x = (int)game.player_x;
-    player_screen_y = (int)game.player_y;
-    
     // Write each visible tile to the device
     for (int row = 0; row < SCREEN_HEIGHT; row++) {
         for (int col = 0; col < SCREEN_WIDTH; col++) {
@@ -231,7 +227,6 @@ int load_tileset(int fd, const char *filename) {
         }
         
         // Read a 32x32 tile from the file
-        bool read_data = false;
         for (int row = 0; row < 32; row++) {
             for (int col = 0; col < 32; col++) {
                 uint8_t byte;
@@ -246,7 +241,6 @@ int load_tileset(int fd, const char *filename) {
                     }
                 }
                 arg.tileset[row][col] = byte;
-                read_data = true;
             }
         }
         
