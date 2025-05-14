@@ -58,6 +58,16 @@ void handle_signal(int sig) {
     keep_running = 0;
 }
 
+/**
+ * Get tile value at specified row and column in the level
+ */
+ uint8_t get_level_tile(int row, int col) {
+    if (row < 0 || row >= SCREEN_HEIGHT || col < 0 || col >= level_width) {
+        return 0; // Return empty tile for out of bounds
+    }
+    return level_buffer[row * level_width + col];
+}
+
 void initial_fill(int fd) {
     map_origin = 0;
     for (int col = 0; col < 32; col++) {
@@ -123,15 +133,7 @@ void cleanup_level() {
     }
 }
 
-/**
- * Get tile value at specified row and column in the level
- */
-uint8_t get_level_tile(int row, int col) {
-    if (row < 0 || row >= SCREEN_HEIGHT || col < 0 || col >= level_width) {
-        return 0; // Return empty tile for out of bounds
-    }
-    return level_buffer[row * level_width + col];
-}
+
 
 /**
  * Check if a tile is solid (obstacle/ground)
