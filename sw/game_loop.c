@@ -18,7 +18,7 @@
 
 // Player sprite constants
 #define PLAYER_TILE 8             // Tile index for player sprite
-#define PLAYER_START_X 5          // Starting X position (screen coordinate)
+#define PLAYER_START_X 10          // Starting X position (screen coordinate)
 #define PLAYER_START_Y 11         // Starting Y position (screen coordinate)
 #define GRAVITY 2              // Gravity force
 #define JUMP_VELOCITY -20        // Initial jump velocity (negative means upward)
