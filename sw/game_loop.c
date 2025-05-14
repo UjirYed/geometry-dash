@@ -44,6 +44,9 @@ int level_width = 0;
 // Flag to control the game loop
 volatile int keep_running = 1;
 
+static int      map_origin   = 0;  // which device column (0–31) is the leftmost tile
+static uint8_t  pixel_offset = 0;  // 0–31 pixel scroll inside a tile
+
 // Thread for game logic
 pthread_t game_thread;
 pthread_mutex_t game_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -53,6 +56,26 @@ pthread_mutex_t game_mutex = PTHREAD_MUTEX_INITIALIZER;
  */
 void handle_signal(int sig) {
     keep_running = 0;
+}
+
+void initial_fill(int fd) {
+    map_origin = 0;
+    for (int col = 0; col < 32; col++) {
+        for (int row = 0; row < SCREEN_HEIGHT; row++) {
+            geo_dash_arg_t arg = {
+                .tilemap_row = row,
+                .tilemap_col = col,
+                .tile_value   = get_level_tile(row, game.level_x + col)
+            };
+            if (ioctl(fd, WRITE_TILE, &arg) < 0) {
+                perror("Error writing tile");
+                pthread_mutex_unlock(&game_mutex);
+                return;
+            }
+        }
+    }
+    
+    pthread_mutex_unlock(&game_mutex);
 }
 
 /**
@@ -409,6 +432,33 @@ void* game_loop(void* arg) {
                 fflush(stdout);
             }
         }
+
+
+		// 2) smooth pixel scroll
+        pixel_offset = (pixel_offset + 1) & 0x1F;
+        geo_dash_arg_t a = { .scroll_offset = pixel_offset };
+        if (ioctl(fd, WRITE_SCROLL_OFFSET, &a) < 0) {
+            perror("WRITE_SCROLL_OFFSET");
+        }
+
+        // 3) if we just wrapped a full tile (32px), reload one new column
+        if (pixel_offset == 0) {
+            pthread_mutex_lock(&game_mutex);
+            game.level_x++;
+            int dead_col  = map_origin;
+            int new_tilec = game.level_x + 31;
+            for (int r = 0; r < SCREEN_HEIGHT; r++) {
+                geo_dash_arg_t x = {
+                    .tilemap_row = r,
+                    .tilemap_col = dead_col,
+                    .tile_value   = get_level_tile(r, new_tilec)
+                };
+                if (ioctl(fd, WRITE_TILE, &x) < 0)
+                    perror("WRITE_TILE (repaint)");
+            }
+            map_origin = (map_origin + 1) & 31;
+            pthread_mutex_unlock(&game_mutex);
+        }
         
         // Update screen
         update_screen(fd);
@@ -479,6 +529,24 @@ int main(int argc, char *argv[]) {
     printf("Controls: Press A button to jump\n");
     printf("player y pos after initialization: %d\n", game.player_y); 
     // Start game thread
+
+	int w = atoi(argv[3]);
+    if (w <= 0) { fprintf(stderr,"Bad level_width\n"); return 1; }
+    if (load_level(argv[2], w)    < 0) return 1;
+
+    // initial game state
+    game.player_x = PLAYER_START_X;
+    game.player_y = PLAYER_START_Y;
+    game.player_vy = 0;
+    game.is_jumping = false;
+    game.is_dead    = false;
+    game.level_x    = 0;
+
+    // prime the tilemap ring
+    initial_fill(fd);
+
+
+
     if (pthread_create(&game_thread, NULL, game_loop, &fd) != 0) {
         perror("Failed to create game thread");
         cleanup_level();
