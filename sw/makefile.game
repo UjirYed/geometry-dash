@@ -1,0 +1,24 @@
+C = gcc
+CFLAGS = -Wall -Werror -g -O2 -std=c99 -D_GNU_SOURCE
+LDFLAGS = -lm -lpthread -lusb-1.0
+
+# Source files
+CONTROLLER_DIR = controller
+SRC = game_loop.c
+CONTROLLER_SRC = $(CONTROLLER_DIR)/usbjoypad.c
+
+# Output executable
+TARGET = geo_dash_game
+
+# Include directories
+INCLUDES = -I. -I$(CONTROLLER_DIR)
+
+all: $(TARGET)
+
+$(TARGET): $(SRC) $(CONTROLLER_SRC)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ $(LDFLAGS)
+
+clean:
+	rm -f $(TARGET) *.o
+
+.PHONY: all clean
