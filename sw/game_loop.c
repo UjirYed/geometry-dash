@@ -18,11 +18,11 @@
 // Player sprite constants
 #define PLAYER_TILE 8             // Tile index for player sprite
 #define PLAYER_START_X 5          // Starting X position (screen coordinate)
-#define PLAYER_START_Y 12         // Starting Y position (screen coordinate)
+#define PLAYER_START_Y 11         // Starting Y position (screen coordinate)
 #define GRAVITY 0.6               // Gravity force
 #define JUMP_VELOCITY -2.5        // Initial jump velocity (negative means upward)
 #define MAX_FALL_SPEED 3.0        // Maximum falling speed
-#define GROUND_Y 12               // Ground Y position
+#define GROUND_Y 11               // Ground Y position
 
 // Game state
 typedef struct {
@@ -137,7 +137,6 @@ bool check_collision(int player_screen_x, int player_screen_y) {
  */
 void update_screen(int fd) {
     geo_dash_arg_t arg;
-    int player_screen_x, player_screen_y;
     
     pthread_mutex_lock(&game_mutex);
     
@@ -415,7 +414,6 @@ void* game_loop(void* arg) {
 
 int main(int argc, char *argv[]) {
     int fd;
-    struct timespec sleep_time;
     
     // Check for required arguments
     if (argc < 4) {
