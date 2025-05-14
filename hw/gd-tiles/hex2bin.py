@@ -18,5 +18,5 @@ with open(f"{sys.argv[1]}") as infile, open(f"{file_name}.bin", "wb") as outfile
             continue
         hex_bytes = clean_line.split()
         for hb in hex_bytes:
-            outfile.write(bytes([int(hb, 16)]))
+            outfile.write(bytes([int(hb[2:], 16)]))
 
