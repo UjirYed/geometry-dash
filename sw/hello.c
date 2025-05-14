@@ -152,6 +152,13 @@ int main(int argc, char *argv[]) {
     printf("Writing scroll offset\n");
     memset(&arg, 0, sizeof(arg));
 
+	arg.player_y = (uint8_t) 255;
+	if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
+		perror("Error writing player Y position");
+		close(fd);
+		return -1;
+	}
+
     // scroll from 0 to 1279 pixels, then wrap
     for (unsigned short offs = 0; ; offs = (offs + 4) % (40*32)) {
         arg.scroll_offset = offs;
