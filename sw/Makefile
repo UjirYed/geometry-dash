@@ -17,29 +17,22 @@ CONTROLLER_DIR := controller
 KERNEL_SOURCE := /usr/src/linux-headers-$(shell uname -r)
 PWD := $(shell pwd)
 
-# === Kernel Module Files ===
-KERNEL_MODULES := geo_dash.o audio_fifo.o
-
 # === User-Space Game Files ===
 GAME_SRC := game_loop.c
 CONTROLLER_SRC := $(CONTROLLER_DIR)/usbjoypad.c
 INCLUDES := -I. -I$(CONTROLLER_DIR)
 GAME_TARGET := geo_dash_game
 
-# === Audio Program ===
-AUDIO_SRC := audio.c
-AUDIO_TARGET := audio
-
 # === Hello Program ===
 HELLO_SRC := hello.c
 HELLO_TARGET := hello
 
 # === Tarball Packaging ===
-TARFILES := Makefile geo_dash.h geo_dash.c audio.c audio_fifo.c audio_fifo.h hello.c
+TARFILES := Makefile geo_dash.h geo_dash.c hello.c controller/usbjoypad.c controller/usbjoypad.h
 TARFILE := sw.tar.gz
 
 # === Targets ===
-default: module $(GAME_TARGET) $(AUDIO_TARGET) $(HELLO_TARGET)
+default: module $(GAME_TARGET) $(HELLO_TARGET)
 
 # Kernel module build
 module:
@@ -49,10 +42,6 @@ module:
 $(GAME_TARGET): $(GAME_SRC) $(CONTROLLER_SRC)
 	$(C) $(CFLAGS) $(INCLUDES) -o $@ $^ $(LDFLAGS)
 
-# Build audio test
-$(AUDIO_TARGET): $(AUDIO_SRC) audio_fifo.h
-	$(C) $(CFLAGS) -o $@ $<
-
 # Build hello test
 $(HELLO_TARGET): $(HELLO_SRC)
 	$(C) $(CFLAGS) -o $@ $<
@@ -60,7 +49,7 @@ $(HELLO_TARGET): $(HELLO_SRC)
 # Clean everything
 clean:
 	$(MAKE) -C $(KERNEL_SOURCE) SUBDIRS=$(PWD) clean
-	rm -f $(GAME_TARGET) $(AUDIO_TARGET) $(HELLO_TARGET) *.o
+	rm -f $(GAME_TARGET) $(HELLO_TARGET) *.o
 
 # Archive source
 .PHONY: tar
