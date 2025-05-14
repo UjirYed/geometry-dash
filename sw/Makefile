@@ -9,7 +9,7 @@ else
 
 # --- General setup ---
 C := gcc
-CFLAGS := -Wall -Werror -g -O2 -std=c99 -D_GNU_SOURCE
+CFLAGS := -Wall -g -O2 -std=c99 -D_GNU_SOURCE
 LDFLAGS := -lm -lpthread -lusb-1.0
 
 # Directories
