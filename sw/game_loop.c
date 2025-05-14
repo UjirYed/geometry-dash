@@ -108,6 +108,7 @@ static void show_gameover(int fd) {
         }
     }
     pthread_mutex_unlock(&game_mutex);
+	sleep(5);
 }
 
 
