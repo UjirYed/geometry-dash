@@ -14,6 +14,7 @@
 
 #define SCREEN_WIDTH 20
 #define SCREEN_HEIGHT 15
+#define SCREEN_HEIGHT 32
 
 // Player sprite constants
 #define PLAYER_TILE 8             // Tile index for player sprite
