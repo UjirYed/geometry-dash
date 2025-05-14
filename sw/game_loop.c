@@ -13,18 +13,19 @@
 #include "geo_dash.h"
 #include "../controller/usbjoypad.h"
 
-#define SCREEN_WIDTH 20
-#define SCREEN_HEIGHT 15
-#define TILE_HEIGHT 32
+#define SCREEN_WIDTH	20
+#define SCREEN_HEIGHT	15
+#define TILE_HEIGHT		32
+#define GROUND_TILE		11
 
 // Player sprite constants
-#define PLAYER_TILE 8             // Tile index for player sprite
-#define PLAYER_START_X 5          // Starting X position (screen coordinate)
-#define PLAYER_START_Y 12         // Starting Y position (screen coordinate)
-#define GRAVITY 0.6               // Gravity force
-#define JUMP_VELOCITY -2.5        // Initial jump velocity (negative means upward)
-#define MAX_FALL_SPEED 3.0        // Maximum falling speed
-#define GROUND_Y 12               // Ground Y position
+#define PLAYER_TILE 	8             // Tile index for player sprite
+#define PLAYER_START_X 	5          // Starting X position (screen coordinate)
+#define PLAYER_START_Y 	12         // Starting Y position (screen coordinate)
+#define GRAVITY 		0.6               // Gravity force
+#define JUMP_VELOCITY 	-2.5        // Initial jump velocity (negative means upward)
+#define MAX_FALL_SPEED 	3.0        // Maximum falling speed
+#define Y_POS_REG_MAX  	255   // bottom of the programmable range
 
 // Game state
 typedef struct {
@@ -324,7 +325,7 @@ void update_game_state(int fd) {
     ControllerState controller = controller_get_state();
     
     // Handle jump input
-    if (controller.buttonAPressed && !game.is_jumping && game.player_y >= GROUND_Y) {
+    if (controller.buttonAPressed && !game.is_jumping && game.player_y >= GROUND_TILE) {
         game.player_vy = JUMP_VELOCITY;
         game.is_jumping = true;
     }
@@ -340,19 +341,22 @@ void update_game_state(int fd) {
     // Update player Y position
     game.player_y += game.player_vy;
 
+	// Compute the register value by scaling:
+	uint8_t regval = (uint8_t)((py * Y_POS_REG_MAX + GROUND_TILE/2) / GROUND_TILE);
+
 	// Update hardware sprite position via ioctl
 	geo_dash_arg_t arg;
-	arg.player_y = 255;
+	arg.player_y = regval;
 	if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
 		perror("Failed to write player Y position");
 	}
     
-    // // Check for ground collision
-    // if (game.player_y >= GROUND_Y) {
-    //     game.player_y = GROUND_Y;
-    //     game.player_vy = 0;
-    //     game.is_jumping = false;
-    // }
+    // Check for ground collision
+    if (game.player_y >= GROUND_TILE) {
+        game.player_y = GROUND_TILE;
+        game.player_vy = 0;
+        game.is_jumping = false;
+    }
     
     // Check for obstacle collision
     if (check_collision((int)game.player_x, (int)game.player_y)) {
