@@ -342,7 +342,7 @@ void update_game_state(int fd) {
     game.player_y += game.player_vy;
 
 	// Compute the register value by scaling:
-	uint8_t regval = (uint8_t)((py * Y_POS_REG_MAX + GROUND_TILE/2) / GROUND_TILE);
+	uint8_t regval = (uint8_t)((game.player_y * Y_POS_REG_MAX + GROUND_TILE/2) / GROUND_TILE);
 
 	// Update hardware sprite position via ioctl
 	geo_dash_arg_t arg;
