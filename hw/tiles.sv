@@ -26,8 +26,8 @@ module tiles
    );
 
    logic [9:0] effective_hcount;
-
-   assign effective_hcount = hcount + {2'b0, scroll_offset}; // need to pad one extra
+  /* Pads and wraps using modulo */
+   assign effective_hcount = (hcount + {2'b0, scroll_offset}) % 1024;
 
    logic [4:0] 	       hcount1;         // Pipeline registers (5 bits for 32 pixels)
    logic 	       VGA_HS0, VGA_HS1, VGA_HS2;
