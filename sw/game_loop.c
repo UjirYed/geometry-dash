@@ -28,7 +28,7 @@
 // Game state
 typedef struct {
     float player_x;               // Player X position in screen coordinates
-    uint8_t player_y;               // Player Y position in screen coordinates
+    float player_y;               // Player Y position in screen coordinates
     float player_vy;              // Player vertical velocity
     bool is_jumping;              // Is the player currently jumping?
     bool is_dead;                 // Is the player dead?
@@ -351,9 +351,9 @@ void update_game_state(int fd) {
 
 	// Update hardware sprite position via ioctl
 	geo_dash_arg_t arg;
-	arg.player_y = game.player_y;
-  printf("Writing player y pos to pos %d\n", arg.player_y);
-  if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
+	arg.player_y = (uint8_t)game.player_y;
+	// printf("Writing player y pos to pos %d\n", arg.player_y);
+	if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
 		perror("Failed to write player Y position");
 	}
     
