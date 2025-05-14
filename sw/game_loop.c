@@ -450,17 +450,41 @@ void update_game_state(int fd) {
  */
 void* game_loop(void* arg) {
     int fd = *((int*)arg);
-    struct timespec sleep_time = { .tv_sec = 0,
-		.tv_nsec = (1000/60)*1000000 };
+    struct timespec sleep_time;
     
-
+    // Set up timing
+    int fps = 60;  // Target frames per second
+    int frame_time_ms = 1000 / fps;
+    
+    // Sleep time structure for consistent frame rate
+    sleep_time.tv_sec = 0;
+    sleep_time.tv_nsec = frame_time_ms * 1000000; // Convert to nanoseconds
     printf("player y pos before running game loop: %d\n", game.player_y); 
     // Main game loop
     while (keep_running && game.level_x < level_width - SCREEN_WIDTH) {
         // Skip processing if game is over
-		if (!game.is_dead) {
+        if (!game.is_dead) {
+            // Update game state (player physics, etc.)
             update_game_state(fd);
+            
+            // Advance level position every few frames for scrolling
+            static int scroll_counter = 0;
+            if (++scroll_counter >= 15) {  // Scroll every 15 frames (4 times per second at 60fps)
+                scroll_counter = 0;
+                
+                pthread_mutex_lock(&game_mutex);
+                game.level_x++;
+                pthread_mutex_unlock(&game_mutex);
+                
+                // Display some debug info
+                printf("Level position: %d/%d | Player: (%.1f, %.1f) | %s\r", 
+                       game.level_x, level_width - SCREEN_WIDTH, 
+                       game.player_x, game.player_y,
+                       game.is_jumping ? "Jumping" : "Grounded");
+                fflush(stdout);
+            }
         }
+
 
 		// 2) smooth pixel scroll
         pixel_offset = (pixel_offset + 1) & 0x1F;
@@ -469,7 +493,7 @@ void* game_loop(void* arg) {
             perror("WRITE_SCROLL_OFFSET");
         }
 
-		// 3) if we just wrapped a full tile (32px), reload one new column
+        // 3) if we just wrapped a full tile (32px), reload one new column
         if (pixel_offset == 0) {
             pthread_mutex_lock(&game_mutex);
             game.level_x++;
@@ -487,8 +511,11 @@ void* game_loop(void* arg) {
             map_origin = (map_origin + 1) & 31;
             pthread_mutex_unlock(&game_mutex);
         }
-
-        // 4) frame pacing
+        
+        // Update screen
+        update_screen(fd);
+        
+        // Sleep to maintain frame rate
         nanosleep(&sleep_time, NULL);
     }
     
