@@ -18,16 +18,17 @@
 // Player sprite constants
 #define PLAYER_TILE 8             // Tile index for player sprite
 #define PLAYER_START_X 5          // Starting X position (screen coordinate)
-#define PLAYER_START_Y 12         // Starting Y position (screen coordinate)
-#define GRAVITY 0.6               // Gravity force
-#define JUMP_VELOCITY -2.5        // Initial jump velocity (negative means upward)
+#define PLAYER_START_Y 11         // Starting Y position (screen coordinate)
+#define GRAVITY 10               // Gravity force
+#define JUMP_VELOCITY -30        // Initial jump velocity (negative means upward)
 #define MAX_FALL_SPEED 3.0        // Maximum falling speed
-#define GROUND_Y 12               // Ground Y position
+#define GROUND_Y 11               // Ground Y position
+#define REG_GROUND 255               // Ground Y position
 
 // Game state
 typedef struct {
     float player_x;               // Player X position in screen coordinates
-    float player_y;               // Player Y position in screen coordinates
+    int player_y;               // Player Y position in screen coordinates
     float player_vy;              // Player vertical velocity
     bool is_jumping;              // Is the player currently jumping?
     bool is_dead;                 // Is the player dead?
@@ -137,13 +138,8 @@ bool check_collision(int player_screen_x, int player_screen_y) {
  */
 void update_screen(int fd) {
     geo_dash_arg_t arg;
-    int player_screen_x, player_screen_y;
     
     pthread_mutex_lock(&game_mutex);
-    
-    // Calculate the integer player position on screen
-    player_screen_x = (int)game.player_x;
-    player_screen_y = (int)game.player_y;
     
     // Write each visible tile to the device
     for (int row = 0; row < SCREEN_HEIGHT; row++) {
@@ -231,7 +227,6 @@ int load_tileset(int fd, const char *filename) {
         }
         
         // Read a 32x32 tile from the file
-        bool read_data = false;
         for (int row = 0; row < 32; row++) {
             for (int col = 0; col < 32; col++) {
                 uint8_t byte;
@@ -246,7 +241,6 @@ int load_tileset(int fd, const char *filename) {
                     }
                 }
                 arg.tileset[row][col] = byte;
-                read_data = true;
             }
         }
         
@@ -312,7 +306,7 @@ end_of_file:
  */
 void initialize_game() {
     game.player_x = PLAYER_START_X;
-    game.player_y = PLAYER_START_Y;
+    game.player_y = REG_GROUND;
     game.player_vy = 0;
     game.is_jumping = false;
     game.is_dead = false;
@@ -329,7 +323,7 @@ void update_game_state(int fd) {
     ControllerState controller = controller_get_state();
     
     // Handle jump input
-    if (controller.buttonAPressed && !game.is_jumping && game.player_y >= GROUND_Y) {
+    if (controller.buttonAPressed && !game.is_jumping && game.player_y >= REG_GROUND) {
         game.player_vy = JUMP_VELOCITY;
         game.is_jumping = true;
     }
@@ -353,8 +347,8 @@ void update_game_state(int fd) {
 	}
     
     // Check for ground collision
-    if (game.player_y >= GROUND_Y) {
-        game.player_y = GROUND_Y;
+    if (game.player_y >= REG_GROUND) {
+        game.player_y = REG_GROUND;
         game.player_vy = 0;
         game.is_jumping = false;
     }
@@ -421,7 +415,6 @@ void* game_loop(void* arg) {
 
 int main(int argc, char *argv[]) {
     int fd;
-    struct timespec sleep_time;
     
     // Check for required arguments
     if (argc < 4) {
