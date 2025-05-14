@@ -114,7 +114,7 @@ static void show_gameover(int fd) {
 
 void initial_fill(int fd) {
     map_origin = 0;
-    for (int col = 0; col < 32; col++) {
+    for (int col = 0; col < 64; col++) {
       for (int row = 0; row < SCREEN_HEIGHT; row++) {
         ioctl(fd, WRITE_TILE, &(geo_dash_arg_t){
           .tilemap_row = row,
@@ -203,13 +203,13 @@ static inline void render_frame(int fd) {
     // 1) smooth-scroll one pixel
     pixel_offset = (pixel_offset + 1) & 0x1F;
     ioctl(fd, WRITE_SCROLL_OFFSET, &(geo_dash_arg_t){ .scroll_offset = pixel_offset });
-
+    printf("pixel_offset: %d\n", pixel_offset);
     // 2) on wrap (every 32 px) reload one 15-tile column
     if (pixel_offset == 0) {
         pthread_mutex_lock(&game_mutex);
           game.level_x++;
           int dead_col  = map_origin;
-          int new_col   = game.level_x + 31;
+          int new_col   = game.level_x + 63;
           for (int r = 0; r < SCREEN_HEIGHT; r++) {
             ioctl(fd, WRITE_TILE, &(geo_dash_arg_t){
               .tilemap_row = r,
@@ -217,7 +217,7 @@ static inline void render_frame(int fd) {
               .tile_value  = get_level_tile(r, new_col)
             });
           }
-          map_origin = (map_origin + 1) & 31;
+          map_origin = (map_origin + 1) & 63;
         pthread_mutex_unlock(&game_mutex);
     }
 }
