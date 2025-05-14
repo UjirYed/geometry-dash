@@ -41,7 +41,6 @@
 
 #define DRIVER_NAME "geo_dash"
 // Assuming that we have 16-bit registers.
-#define PLAYER_Y_POS(base)   ((base) + 0x00)  // 16-bit
 #define X_SHIFT(base)        ((base) + 0x02)  // 16-bit
 
 #define TILEMAP(base)   ((base))
@@ -51,6 +50,8 @@
 #define FLAGS(base)          ((base) + 0x0C)  // lower 8 bits used
 #define OUTPUT_FLAGS(base)   ((base) + 0x0E)  // lower 8 bits used
 #define SCROLL_OFFSET(base)  ((base) + 0x10)  // 16-bit  - added for tile scroll
+#define PLAYER_Y_POS(base) ((base) + 0x3002)  // 16-bit register
+#define SCROLL_OFFSET(base) ((base) + 0x3010)  // 16-bit register
 
 /*
 Information about our geometry_dash device. Acts as a mirror of hardware state.
@@ -111,10 +112,8 @@ static uint8_t read_tileset(int tile_no, int pixel_no)
       return ioread8(pixel_location);
 }
 
-
-
-static void write_player_y_position(unsigned short *value) {
-    iowrite16(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
+static void write_player_y_position(uint8_t *value) {
+	iowrite8(*value, PLAYER_Y_POS(geo_dash_dev.virtbase));
 }
 
 static void write_x_shift(unsigned short *value) {
@@ -130,9 +129,8 @@ static void write_output_flags(uint8_t *value) {
     iowrite16((uint16_t)(*value), OUTPUT_FLAGS(geo_dash_dev.virtbase));
 }
 
-static void write_scroll_offset(unsigned short *value) {
-    iowrite16(*value, SCROLL_OFFSET(geo_dash_dev.virtbase));
-    geo_dash_dev.scroll_offset = *value;
+static void write_scroll_offset(uint8_t *value) {
+	iowrite8(*value, SCROLL_OFFSET(geo_dash_dev.virtbase));
 }
 
 static long geo_dash_ioctl(struct file *f, unsigned int cmd, unsigned long arg)
