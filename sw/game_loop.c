@@ -9,21 +9,23 @@
 #include <signal.h>
 #include <math.h>
 #include <pthread.h>
+#include <stdbool.h> 
 #include "geo_dash.h"
 #include "../controller/usbjoypad.h"
 
-#define SCREEN_WIDTH 20
-#define SCREEN_HEIGHT 15
-#define REG_BOTOM 255
+#define SCREEN_WIDTH	20
+#define SCREEN_HEIGHT	15
+#define TILE_HEIGHT		32
+#define GROUND_TILE		11
 
 // Player sprite constants
-#define PLAYER_TILE 8             // Tile index for player sprite
-#define PLAYER_START_X 5          // Starting X position (screen coordinate)
-#define PLAYER_START_Y 11         // Starting Y position (screen coordinate)
-#define GRAVITY 0.6               // Gravity force
-#define JUMP_VELOCITY -2.5        // Initial jump velocity (negative means upward)
-#define MAX_FALL_SPEED 3.0        // Maximum falling speed
-#define GROUND_Y 11               // Ground Y position
+#define PLAYER_TILE 	8             // Tile index for player sprite
+#define PLAYER_START_X 	5          // Starting X position (screen coordinate)
+#define PLAYER_START_Y 	12         // Starting Y position (screen coordinate)
+#define GRAVITY 		0.6               // Gravity force
+#define JUMP_VELOCITY 	-2.5        // Initial jump velocity (negative means upward)
+#define MAX_FALL_SPEED 	3.0        // Maximum falling speed
+#define Y_POS_REG_MAX  	255   // bottom of the programmable range
 
 // Game state
 typedef struct {
@@ -140,7 +142,7 @@ void update_screen(int fd) {
     geo_dash_arg_t arg;
     
     pthread_mutex_lock(&game_mutex);
-
+    
     // Write each visible tile to the device
     for (int row = 0; row < SCREEN_HEIGHT; row++) {
         for (int col = 0; col < SCREEN_WIDTH; col++) {
@@ -150,11 +152,13 @@ void update_screen(int fd) {
             // Get the tile from our level buffer
             uint8_t tile = get_level_tile(row, level_col);
             
+            
+            
             // Write the tile to the device
             arg.tilemap_row = row;
             arg.tilemap_col = col;
             arg.tile_value = tile;
-            
+            printf("row: %d, col: %d, value: %d written to map\n", arg.tilemap_row, arg.tilemap_col, arg.tile_value);
             if (ioctl(fd, WRITE_TILE, &arg) < 0) {
                 perror("Error writing tile");
                 pthread_mutex_unlock(&game_mutex);
@@ -225,7 +229,6 @@ int load_tileset(int fd, const char *filename) {
         }
         
         // Read a 32x32 tile from the file
-        bool read_data = false;
         for (int row = 0; row < 32; row++) {
             for (int col = 0; col < 32; col++) {
                 uint8_t byte;
@@ -240,7 +243,6 @@ int load_tileset(int fd, const char *filename) {
                     }
                 }
                 arg.tileset[row][col] = byte;
-                read_data = true;
             }
         }
         
@@ -323,7 +325,7 @@ void update_game_state(int fd) {
     ControllerState controller = controller_get_state();
     
     // Handle jump input
-    if (controller.buttonAPressed && !game.is_jumping && game.player_y >= GROUND_Y) {
+    if (controller.buttonAPressed && !game.is_jumping && game.player_y >= GROUND_TILE) {
         game.player_vy = JUMP_VELOCITY;
         game.is_jumping = true;
     }
@@ -339,16 +341,19 @@ void update_game_state(int fd) {
     // Update player Y position
     game.player_y += game.player_vy;
 
+	// Compute the register value by scaling:
+	uint8_t regval = (uint8_t)((game.player_y * Y_POS_REG_MAX + GROUND_TILE/2) / GROUND_TILE);
+
 	// Update hardware sprite position via ioctl
 	geo_dash_arg_t arg;
-	arg.player_y = (uint16_t)game.player_y;
+	arg.player_y = regval;
 	if (ioctl(fd, WRITE_PLAYER_Y_POS, &arg) < 0) {
 		perror("Failed to write player Y position");
 	}
     
     // Check for ground collision
-    if (game.player_y >= GROUND_Y) {
-        game.player_y = GROUND_Y;
+    if (game.player_y >= GROUND_TILE) {
+        game.player_y = GROUND_TILE;
         game.player_vy = 0;
         game.is_jumping = false;
     }
@@ -367,7 +372,8 @@ void update_game_state(int fd) {
  */
 void* game_loop(void* arg) {
     int fd = *((int*)arg);
-    struct timespec sleep_time;
+
+	struct timespec sleep_time;
     
     // Set up timing
     int fps = 60;  // Target frames per second
@@ -415,7 +421,6 @@ void* game_loop(void* arg) {
 
 int main(int argc, char *argv[]) {
     int fd;
-    struct timespec sleep_time;
     
     // Check for required arguments
     if (argc < 4) {
