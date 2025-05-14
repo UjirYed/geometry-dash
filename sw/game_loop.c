@@ -385,9 +385,12 @@ void update_game_state(int fd) {
         game.player_vy = 0;
         game.is_jumping = false;
     }
+
+	int tile_x = (int)game.player_x;  
+	int tile_y = (int)(game.player_y / TILE_HEIGHT);
     
     // Check for obstacle collision
-    if (check_collision((int)game.player_x, (int)game.player_y)) {
+    if (check_collision(tile_x, tile_y)) {
         game.is_dead = true;
         printf("\nGame Over! Collided with an obstacle.\n");
     }
