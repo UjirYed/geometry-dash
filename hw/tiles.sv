@@ -42,11 +42,11 @@ module tiles
    
    // Extract the tile coordinates from the screen position
    logic [3:0]         v_tile;          // Vertical tile position (0-15)
-   logic [5:0]         h_tile;          // Horizontal tile position (0-63)
+   logic [4:0]         h_tile;          // Horizontal tile position (0-32)
    
    // Map screen coordinates to tile coordinates
    assign v_tile = vcount[8:5];         // Divide y by 32 (5 bit shift)
-   assign h_tile = effective_hcount[10:5]; // Divide x by 32, zero-extend to 6 bits
+   assign h_tile = effective_hcount[9:5]; // Divide x by 32, zero-extend to 6 bits
    
    vga_counters cntrs(.vcount( {unconnected, vcount} ), // VGA Counters
 		      .VGA_BLANK_n( VGA_BLANK_n0 ),
