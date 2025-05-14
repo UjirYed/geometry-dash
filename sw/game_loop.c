@@ -201,7 +201,7 @@ bool check_collision(int player_screen_x, int player_screen_y) {
  */
 static inline void render_frame(int fd) {
     // 1) smooth-scroll one pixel
-    pixel_offset = (pixel_offset + 1) & 0x1F;
+    pixel_offset++;
     ioctl(fd, WRITE_SCROLL_OFFSET, &(geo_dash_arg_t){ .scroll_offset = pixel_offset });
     printf("pixel_offset: %d\n", pixel_offset);
     // 2) on wrap (every 32 px) reload one 15-tile column
