@@ -115,21 +115,14 @@ static void show_gameover(int fd) {
 void initial_fill(int fd) {
     map_origin = 0;
     for (int col = 0; col < 32; col++) {
-        for (int row = 0; row < SCREEN_HEIGHT; row++) {
-            geo_dash_arg_t arg = {
-                .tilemap_row = row,
-                .tilemap_col = col,
-                .tile_value   = get_level_tile(row, game.level_x + col)
-            };
-            if (ioctl(fd, WRITE_TILE, &arg) < 0) {
-                perror("Error writing tile");
-                pthread_mutex_unlock(&game_mutex);
-                return;
-            }
-        }
+      for (int row = 0; row < SCREEN_HEIGHT; row++) {
+        ioctl(fd, WRITE_TILE, &(geo_dash_arg_t){
+          .tilemap_row = row,
+          .tilemap_col = col,
+          .tile_value  = get_level_tile(row, game.level_x + col)
+        });
+      }
     }
-    
-    pthread_mutex_unlock(&game_mutex);
 }
 
 /**
@@ -206,35 +199,29 @@ bool check_collision(int player_screen_x, int player_screen_y) {
  * Update the visible tilemap on the device
  * @param fd The device file descriptor
  */
-void update_screen(int fd) {
-    geo_dash_arg_t arg;
-    
-    pthread_mutex_lock(&game_mutex);
-    
-    // Write each visible tile to the device
-    for (int row = 0; row < SCREEN_HEIGHT; row++) {
-        for (int col = 0; col < SCREEN_WIDTH; col++) {
-            // Get the level column
-            int level_col = game.level_x + col;
-            
-            // Get the tile from our level buffer
-            uint8_t tile = get_level_tile(row, level_col);
-            
-            // Write the tile to the device
-            arg.tilemap_row = row;
-            arg.tilemap_col = col;
-            arg.tile_value = tile;
-            
-            if (ioctl(fd, WRITE_TILE, &arg) < 0) {
-                perror("Error writing tile");
-                pthread_mutex_unlock(&game_mutex);
-                return;
-            }
-        }
+static inline void render_frame(int fd) {
+    // 1) smooth-scroll one pixel
+    pixel_offset = (pixel_offset + 1) & 0x1F;
+    ioctl(fd, WRITE_SCROLL_OFFSET, &(geo_dash_arg_t){ .scroll_offset = pixel_offset });
+
+    // 2) on wrap (every 32 px) reload one 15-tile column
+    if (pixel_offset == 0) {
+        pthread_mutex_lock(&game_mutex);
+          game.level_x++;
+          int dead_col  = map_origin;
+          int new_col   = game.level_x + 31;
+          for (int r = 0; r < SCREEN_HEIGHT; r++) {
+            ioctl(fd, WRITE_TILE, &(geo_dash_arg_t){
+              .tilemap_row = r,
+              .tilemap_col = dead_col,
+              .tile_value  = get_level_tile(r, new_col)
+            });
+          }
+          map_origin = (map_origin + 1) & 31;
+        pthread_mutex_unlock(&game_mutex);
     }
-    
-    pthread_mutex_unlock(&game_mutex);
 }
+
 
 /**
  * Initialize the palette colors
@@ -483,55 +470,9 @@ void* game_loop(void* arg) {
         if (!game.is_dead) {
             // Update game state (player physics, etc.)
             update_game_state(fd);
-            
-            // Advance level position every few frames for scrolling
-            static int scroll_counter = 0;
-            if (++scroll_counter >= 15) {  // Scroll every 15 frames (4 times per second at 60fps)
-                scroll_counter = 0;
-                
-                pthread_mutex_lock(&game_mutex);
-                game.level_x++;
-                pthread_mutex_unlock(&game_mutex);
-                
-                // Display some debug info
-                printf("Level position: %d/%d | Player: (%.1f, %.1f) | %s\r", 
-                       game.level_x, level_width - SCREEN_WIDTH, 
-                       game.player_x, game.player_y,
-                       game.is_jumping ? "Jumping" : "Grounded");
-                fflush(stdout);
-            }
         }
+        render_frame(fd);
 
-
-		// 2) smooth pixel scroll
-        pixel_offset = (pixel_offset + 1) & 0x1F;
-        geo_dash_arg_t a = { .scroll_offset = pixel_offset };
-        if (ioctl(fd, WRITE_SCROLL_OFFSET, &a) < 0) {
-            perror("WRITE_SCROLL_OFFSET");
-        }
-
-        // 3) if we just wrapped a full tile (32px), reload one new column
-        if (pixel_offset == 0) {
-            pthread_mutex_lock(&game_mutex);
-            game.level_x++;
-            int dead_col  = map_origin;
-            int new_tilec = game.level_x + 31;
-            for (int r = 0; r < SCREEN_HEIGHT; r++) {
-                geo_dash_arg_t x = {
-                    .tilemap_row = r,
-                    .tilemap_col = dead_col,
-                    .tile_value   = get_level_tile(r, new_tilec)
-                };
-                if (ioctl(fd, WRITE_TILE, &x) < 0)
-                    perror("WRITE_TILE (repaint)");
-            }
-            map_origin = (map_origin + 1) & 31;
-            pthread_mutex_unlock(&game_mutex);
-        }
-        
-        // Update screen
-        update_screen(fd);
-        
         // Sleep to maintain frame rate
         nanosleep(&sleep_time, NULL);
     }
